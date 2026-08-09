@@ -4,7 +4,7 @@ on:
     workflow_dispatch:
     push:
         branches:
-            - "codex/**"
+            - main
         paths:
             - .github/workflows/arabic-installer.yml
             - src/plugins/arabicDiscord/**
