@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import definePlugin from "@utils/types";
+import { definePluginSettings } from "@api/Settings";
+import { Link } from "@components/Link";
+import definePlugin, { OptionType } from "@utils/types";
+import { Forms } from "@webpack/common";
 
 // Import styles and translations
 import "./style.css";
@@ -12,11 +15,38 @@ import translations from "./ar.json";
 // --- Constants & Configuration ---
 
 const attributesToTranslate = ["aria-label", "title", "placeholder", "alt"];
+const fontFamilies: Record<string, string> = {
+    amiri: '"Amiri", "Noto Naskh Arabic", serif',
+    cairo: '"Cairo", "Noto Sans Arabic", sans-serif',
+    tajawal: '"Tajawal", "Noto Sans Arabic", sans-serif',
+    vazirmatn: '"Vazirmatn", "Noto Sans Arabic", sans-serif'
+};
 const skipSelector = [
     "input", "textarea", "select", "option", "code", "pre", "kbd", "samp",
     "script", "style", "time", "[contenteditable='true']", "[role='textbox']",
     "[data-slate-editor='true']", "[id^='message-content-']", "[class*='messageContent']"
 ].join(",");
+
+function applyFont(font: string) {
+    const family = fontFamilies[font];
+    if (family) document.documentElement.style.setProperty("--arabic-ui-font", family);
+    else document.documentElement.style.removeProperty("--arabic-ui-font");
+}
+
+const settings = definePluginSettings({
+    font: {
+        type: OptionType.SELECT,
+        description: "اختر الخط العربي المستخدم في واجهة ديسكورد",
+        options: [
+            { label: "Discord Default", value: "default" },
+            { label: "Cairo", value: "cairo", default: true },
+            { label: "Tajawal", value: "tajawal" },
+            { label: "Amiri", value: "amiri" },
+            { label: "Vazirmatn", value: "vazirmatn" }
+        ],
+        onChange: applyFont
+    }
+});
 
 const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
     [/^(\d+)\s+Online$/, match => `${match[1]} متصل`],
@@ -59,6 +89,11 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^Plans start at only (.+)\. Cancel anytime$/, match => `تبدأ الخطط من \u200E${match[1]}\u200E فقط. يمكنك الإلغاء في أي وقت`],
     [/^(.+)\/month$/, match => `${match[1]}/شهر`],
     [/^(.+)\/year$/, match => `${match[1]}/سنة`],
+    [/^In (\d+) Days?$/, match => `خلال ${match[1]} يوم`],
+    [/^(\d+) Orbs$/, match => `${match[1]} أوربز`],
+    [/^GOOD MORNING,?$/, () => "صباح الخير،"],
+    [/^GOOD AFTERNOON,?$/, () => "مساء الخير،"],
+    [/^GOOD EVENING,?$/, () => "مساء الخير،"],
     [/^Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `افتح صندوق الوارد بالضغط على ${match[1]}، وحدد أول رسالة كمقروءة بالضغط على ${match[2]}.`],
     [/^PROTIP: Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `نصيحة احترافية: افتح صندوق الوارد بالضغط على ${match[1]}، وحدد أول رسالة كمقروءة بالضغط على ${match[2]}.`]
 ];
@@ -87,9 +122,15 @@ function normalize(value: string) {
     return value.replace(/\s+/g, " ").trim();
 }
 
+const normalizedTranslations = new Map<string, string>();
+for (const [key, value] of Object.entries(translations)) {
+    const normalizedKey = normalize(key);
+    if (!normalizedTranslations.has(normalizedKey)) normalizedTranslations.set(normalizedKey, normalize(value));
+}
+
 function translate(value: string) {
     const normalized = normalize(value);
-    const exact = translations[normalized];
+    const exact = normalizedTranslations.get(normalized);
     if (exact) return exact;
 
     for (const [pattern, replacer] of translationPatterns) {
@@ -173,12 +214,20 @@ function restoreTranslations() {
 // --- Plugin Definition ---
 
 export default definePlugin({
-    name: "ArabicDiscord",
-    description: "Adds a lightweight Arabic UI translation layer to Discord.",
-    authors: [{ name: "Local Arabic User", id: 0n }],
+    name: "ArabicUI",
+    description: "Translates Discord's interface into Arabic with selectable Arabic fonts.",
+    authors: [{ name: "2-sa", id: 0n }],
     enabledByDefault: true,
+    settings,
+    settingsAboutComponent: () => (
+        <Forms.FormText>
+            GitHub: <Link href="https://github.com/2-sa/Vencord">github.com/2-sa/Vencord</Link>
+        </Forms.FormText>
+    ),
 
     start() {
+        applyFont(settings.store.font);
+
         // 1. Initial Translation
         translateTree(document.body);
 
@@ -212,5 +261,6 @@ export default definePlugin({
         observer?.disconnect();
         observer = undefined;
         restoreTranslations();
+        document.documentElement.style.removeProperty("--arabic-ui-font");
     }
 });
