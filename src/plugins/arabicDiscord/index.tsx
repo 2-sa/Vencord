@@ -14,7 +14,7 @@ import translations from "./ar.json";
 
 // --- Constants & Configuration ---
 
-const attributesToTranslate = ["aria-label", "title", "placeholder", "alt"] as const;
+const attributesToTranslate = ["aria-label", "title", "placeholder", "alt"];
 const fontDefinitions = {
     amiri: {
         family: '"Amiri", "Noto Naskh Arabic", serif',
