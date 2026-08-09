@@ -8,6 +8,7 @@ import "./style.css";
 
 import { definePluginSettings } from "@api/Settings";
 import { Link } from "@components/Link";
+import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
 import { Forms } from "@webpack/common";
 
@@ -344,7 +345,7 @@ function restoreTranslations() {
 export default definePlugin({
     name: "ArabicUI",
     description: "Translates Discord's interface into Arabic with selectable Arabic fonts.",
-    authors: [{ name: "2-sa", id: 0n }],
+    authors: [Devs.TwoSa],
     enabledByDefault: true,
     settings,
     settingsAboutComponent: () => (
