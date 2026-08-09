@@ -1,0 +1,28 @@
+:root {
+    --font-primary: "Segoe UI", "Noto Sans Arabic", "Tahoma", "Arial", sans-serif;
+    --font-display: "Segoe UI", "Noto Sans Arabic", "Tahoma", "Arial", sans-serif;
+    --font-headline: "Segoe UI", "Noto Sans Arabic", "Tahoma", "Arial", sans-serif;
+}
+
+body, button, input, textarea, select {
+    font-family: "Segoe UI", "Noto Sans Arabic", "Tahoma", "Arial", sans-serif !important;
+    font-feature-settings: normal;
+    letter-spacing: 0 !important;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, [class*="heading"], [class*="title"] {
+    font-family: "Segoe UI", "Noto Sans Arabic", "Tahoma", "Arial", sans-serif !important;
+    letter-spacing: 0 !important;
+    line-height: 1.28 !important;
+}
+
+[role="menuitem"], [role="tab"], button, [class*="button"], [class*="item"], [class*="label"], [class*="name"] {
+    letter-spacing: 0 !important;
+    line-height: 1.35 !important;
+}
+
+[class*="sidebar"] [role="button"], [class*="side"] [role="tab"] {
+    font-size: 15px !important;
+}
