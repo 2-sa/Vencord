@@ -1,7 +1,10 @@
 /*
- * Vencord user plugin
+ * Vencord, a Discord client mod
+ * Copyright (c) 2026 2-sa
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+
+import "./style.css";
 
 import { definePluginSettings } from "@api/Settings";
 import { Link } from "@components/Link";
@@ -9,7 +12,6 @@ import definePlugin, { OptionType } from "@utils/types";
 import { Forms } from "@webpack/common";
 
 // Import styles and translations
-import "./style.css";
 import translations from "./ar.json";
 
 // --- Constants & Configuration ---
@@ -119,7 +121,7 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^Add up to (\d+) custom emoji that anyone can use in this server\. Animated GIF emoji may be used by members with Discord Nitro\.$/, match => `أضف ما يصل إلى ${match[1]} رمزاً تعبيرياً مخصصاً يمكن لأي شخص استخدامه في هذا السيرفر. يمكن للأعضاء الذين يمتلكون ديسكورد نايترو استخدام الرموز التعبيرية المتحركة بصيغة GIF.`],
     [/^The recommended minimum size is (\d+x\d+) and recommended aspect ratio is ([\d:]+)\.$/, match => `الحد الأدنى الموصى به للحجم هو ${match[1]} ونسبة الأبعاد الموصى بها هي ${match[2]}.`],
     [/^Buy for (.+)$/, match => `شراء بسعر ${match[1]}`],
-    [/^Plans start at only (.+?)\/(month|year)\. Cancel anytime$/, match => `تبدأ الخطط من \u200E${match[1]}\u200E/${match[2] === 'month' ? 'شهر' : 'سنة'} فقط. يمكنك الإلغاء في أي وقت`],
+    [/^Plans start at only (.+?)\/(month|year)\. Cancel anytime$/, match => `تبدأ الخطط من \u200E${match[1]}\u200E/${match[2] === "month" ? "شهر" : "سنة"} فقط. يمكنك الإلغاء في أي وقت`],
     [/^Plans start at only (.+)\. Cancel anytime$/, match => `تبدأ الخطط من \u200E${match[1]}\u200E فقط. يمكنك الإلغاء في أي وقت`],
     [/^(.+)\/month$/, match => `${match[1]}/شهر`],
     [/^(.+)\/year$/, match => `${match[1]}/سنة`],
