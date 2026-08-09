@@ -14,23 +14,57 @@ import translations from "./ar.json";
 
 // --- Constants & Configuration ---
 
-const attributesToTranslate = ["aria-label", "title", "placeholder", "alt"];
-const fontFamilies: Record<string, string> = {
-    amiri: '"Amiri", "Noto Naskh Arabic", serif',
-    cairo: '"Cairo", "Noto Sans Arabic", sans-serif',
-    tajawal: '"Tajawal", "Noto Sans Arabic", sans-serif',
-    vazirmatn: '"Vazirmatn", "Noto Sans Arabic", sans-serif'
+const attributesToTranslate = ["aria-label", "title", "placeholder", "alt"] as const;
+const fontDefinitions = {
+    amiri: {
+        family: '"Amiri", "Noto Naskh Arabic", serif',
+        url: "https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap"
+    },
+    cairo: {
+        family: '"Cairo", "Noto Sans Arabic", sans-serif',
+        url: "https://fonts.googleapis.com/css2?family=Cairo:wght@400..700&display=swap"
+    },
+    tajawal: {
+        family: '"Tajawal", "Noto Sans Arabic", sans-serif',
+        url: "https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap"
+    },
+    vazirmatn: {
+        family: '"Vazirmatn", "Noto Sans Arabic", sans-serif',
+        url: "https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400..700&display=swap"
+    }
 };
+type FontName = keyof typeof fontDefinitions | "default";
+
+const FONT_LINK_ID = "vc-arabic-ui-font";
+const FONT_CLASS = "vc-arabic-ui-custom-font";
+const TRANSLATION_CACHE_LIMIT = 1_024;
 const skipSelector = [
     "input", "textarea", "select", "option", "code", "pre", "kbd", "samp",
     "script", "style", "time", "[contenteditable='true']", "[role='textbox']",
     "[data-slate-editor='true']", "[id^='message-content-']", "[class*='messageContent']"
 ].join(",");
 
-function applyFont(font: string) {
-    const family = fontFamilies[font];
-    if (family) document.documentElement.style.setProperty("--arabic-ui-font", family);
-    else document.documentElement.style.removeProperty("--arabic-ui-font");
+function applyFont(font: FontName) {
+    const root = document.documentElement;
+    const existingLink = document.getElementById(FONT_LINK_ID) as HTMLLinkElement | null;
+    const definition = font === "default" ? undefined : fontDefinitions[font];
+
+    if (!definition) {
+        existingLink?.remove();
+        root.classList.remove(FONT_CLASS);
+        root.style.removeProperty("--arabic-ui-font");
+        return;
+    }
+
+    const link = existingLink ?? Object.assign(document.createElement("link"), {
+        id: FONT_LINK_ID,
+        rel: "stylesheet"
+    });
+    if (link.href !== definition.url) link.href = definition.url;
+    if (!link.isConnected) document.head.append(link);
+
+    root.style.setProperty("--arabic-ui-font", definition.family);
+    root.classList.add(FONT_CLASS);
 }
 
 const settings = definePluginSettings({
@@ -44,7 +78,7 @@ const settings = definePluginSettings({
             { label: "Amiri", value: "amiri" },
             { label: "Vazirmatn", value: "vazirmatn" }
         ],
-        onChange: applyFont
+        onChange: value => applyFont(value as FontName)
     }
 });
 
@@ -100,9 +134,19 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
 
 // --- State ---
 
-const translatedTextNodes = new Map<Text, string>();
-const translatedAttributes = new Map<Element, Map<string, string>>();
+interface TranslationRecord {
+    original: string;
+    translated: string;
+}
+
+const translatedTextNodes = new Map<Text, TranslationRecord>();
+const translatedAttributes = new Map<Element, Map<string, TranslationRecord>>();
+const translationCache = new Map<string, string | null>();
 let observer: MutationObserver | undefined;
+let scheduledFrame: number | undefined;
+const pendingRoots = new Set<Node>();
+const pendingNodes = new Set<Node>();
+const removedRoots = new Set<Node>();
 
 // --- Helper Functions ---
 
@@ -130,13 +174,32 @@ for (const [key, value] of Object.entries(translations)) {
 
 function translate(value: string) {
     const normalized = normalize(value);
+    if (!normalized || !/[A-Za-z]/.test(normalized)) return;
+
     const exact = normalizedTranslations.get(normalized);
     if (exact) return exact;
 
+    const cached = translationCache.get(normalized);
+    if (cached !== undefined) return cached ?? undefined;
+
     for (const [pattern, replacer] of translationPatterns) {
         const match = normalized.match(pattern);
-        if (match) return replacer(match);
+        if (match) {
+            const result = replacer(match);
+            cacheTranslation(normalized, result);
+            return result;
+        }
     }
+
+    cacheTranslation(normalized, null);
+}
+
+function cacheTranslation(key: string, value: string | null) {
+    if (translationCache.size >= TRANSLATION_CACHE_LIMIT) {
+        const oldest = translationCache.keys().next().value;
+        if (oldest) translationCache.delete(oldest);
+    }
+    translationCache.set(key, value);
 }
 
 function replaceWithTranslation(value: string, translated: string) {
@@ -145,32 +208,45 @@ function replaceWithTranslation(value: string, translated: string) {
     return `${leadingWhitespace}${translated}${trailingWhitespace}`;
 }
 
-function shouldSkipElement(element: Element) {
-    return Boolean(element.closest(skipSelector));
+function isExcluded(element: Element) {
+    return element.matches(skipSelector);
+}
+
+function isInsideExcludedTree(node: Node) {
+    const element = node instanceof Element ? node : node.parentElement;
+    return Boolean(element?.closest(skipSelector));
 }
 
 // --- Core Translation Logic ---
 
 function translateTextNode(node: Text) {
     const parent = node.parentElement;
-    if (!parent || shouldSkipElement(parent)) return;
+    if (!parent) return;
 
     const translated = translate(node.data);
     if (!translated) return;
 
-    if (!translatedTextNodes.has(node)) translatedTextNodes.set(node, node.data);
-    node.data = replaceWithTranslation(node.data, translated);
+    const value = replaceWithTranslation(node.data, translated);
+    const previous = translatedTextNodes.get(node);
+    if (previous?.translated === node.data || value === node.data) return;
+
+    translatedTextNodes.set(node, { original: node.data, translated: value });
+    node.data = value;
 }
 
 function translateAttributes(element: Element) {
-    if (shouldSkipElement(element)) return;
-
     for (const attribute of attributesToTranslate) {
         const value = element.getAttribute(attribute);
         if (!value) continue;
 
+        const previous = translatedAttributes.get(element)?.get(attribute);
+        if (previous?.translated === value) continue;
+
         const translated = translate(value);
         if (!translated) continue;
+
+        const translatedValue = replaceWithTranslation(value, translated);
+        if (translatedValue === value) continue;
 
         let originals = translatedAttributes.get(element);
         if (!originals) {
@@ -178,15 +254,21 @@ function translateAttributes(element: Element) {
             translatedAttributes.set(element, originals);
         }
 
-        if (!originals.has(attribute)) originals.set(attribute, value);
-        element.setAttribute(attribute, replaceWithTranslation(value, translated));
+        originals.set(attribute, { original: value, translated: translatedValue });
+        element.setAttribute(attribute, translatedValue);
     }
 }
 
 function translateTree(root: Node) {
+    if (isInsideExcludedTree(root)) return;
     if (root instanceof Element) translateAttributes(root);
 
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+            if (node instanceof Element && isExcluded(node)) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+        }
+    });
     let node: Node | null;
 
     while ((node = walker.nextNode())) {
@@ -198,13 +280,57 @@ function translateTree(root: Node) {
     }
 }
 
+function forgetTree(root: Node) {
+    translatedTextNodes.delete(root as Text);
+    translatedAttributes.delete(root as Element);
+
+    if (!(root instanceof Element)) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+        translatedTextNodes.delete(node as Text);
+        translatedAttributes.delete(node as Element);
+    }
+}
+
+function isNestedInSet(node: Node, roots: Set<Node>) {
+    for (let parent = node.parentNode; parent; parent = parent.parentNode) {
+        if (roots.has(parent)) return true;
+    }
+    return false;
+}
+
+function flushMutations() {
+    scheduledFrame = undefined;
+
+    for (const root of removedRoots) forgetTree(root);
+    removedRoots.clear();
+
+    for (const node of pendingNodes) {
+        if (!node.isConnected || isInsideExcludedTree(node)) continue;
+        if (node instanceof Text) translateTextNode(node);
+        else if (node instanceof Element) translateAttributes(node);
+    }
+    pendingNodes.clear();
+
+    for (const root of pendingRoots) {
+        if (root.isConnected && !isNestedInSet(root, pendingRoots)) translateTree(root);
+    }
+    pendingRoots.clear();
+}
+
+function scheduleFlush() {
+    if (scheduledFrame === undefined) scheduledFrame = requestAnimationFrame(flushMutations);
+}
+
 function restoreTranslations() {
-    for (const [node, original] of translatedTextNodes) {
-        node.data = original;
+    for (const [node, record] of translatedTextNodes) {
+        if (node.isConnected && node.data === record.translated) node.data = record.original;
     }
     for (const [element, attributes] of translatedAttributes) {
-        for (const [attribute, original] of attributes) {
-            element.setAttribute(attribute, original);
+        if (!element.isConnected) continue;
+        for (const [attribute, record] of attributes) {
+            if (element.getAttribute(attribute) === record.translated) element.setAttribute(attribute, record.original);
         }
     }
     translatedTextNodes.clear();
@@ -226,7 +352,7 @@ export default definePlugin({
     ),
 
     start() {
-        applyFont(settings.store.font);
+        applyFont(settings.store.font as FontName);
 
         // 1. Initial Translation
         translateTree(document.body);
@@ -235,24 +361,26 @@ export default definePlugin({
         observer = new MutationObserver(mutations => {
             for (const mutation of mutations) {
                 if (mutation.type === "attributes" && mutation.target instanceof Element) {
-                    translateAttributes(mutation.target);
+                    pendingNodes.add(mutation.target);
                     continue;
                 }
 
-                for (const node of mutation.addedNodes) {
-                    if (node.nodeType === Node.TEXT_NODE) {
-                        translateTextNode(node as Text);
-                    } else if (node instanceof Element) {
-                        translateTree(node);
-                    }
+                if (mutation.type === "characterData") {
+                    pendingNodes.add(mutation.target);
+                    continue;
                 }
+
+                for (const node of mutation.addedNodes) pendingRoots.add(node);
+                for (const node of mutation.removedNodes) removedRoots.add(node);
             }
+            scheduleFlush();
         });
 
         observer.observe(document.body, {
             childList: true,
             subtree: true,
             attributes: true,
+            characterData: true,
             attributeFilter: attributesToTranslate
         });
     },
@@ -260,7 +388,15 @@ export default definePlugin({
     stop() {
         observer?.disconnect();
         observer = undefined;
+        if (scheduledFrame !== undefined) cancelAnimationFrame(scheduledFrame);
+        scheduledFrame = undefined;
+        pendingRoots.clear();
+        pendingNodes.clear();
+        removedRoots.clear();
         restoreTranslations();
+        translationCache.clear();
+        document.getElementById(FONT_LINK_ID)?.remove();
+        document.documentElement.classList.remove(FONT_CLASS);
         document.documentElement.style.removeProperty("--arabic-ui-font");
     }
 });

@@ -1,24 +1,15 @@
-@import url("https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;500;600;700&family=Tajawal:wght@400;500;700&family=Vazirmatn:wght@400;500;600;700&display=swap");
-
-body, button, input, textarea, select {
+.vc-arabic-ui-custom-font body {
     font-family: var(--arabic-ui-font, var(--font-primary)) !important;
     font-feature-settings: normal;
     letter-spacing: 0 !important;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, [class*="heading"], [class*="title"] {
+.vc-arabic-ui-custom-font :is(button, input, textarea, select) {
+    font-family: inherit !important;
+}
+
+.vc-arabic-ui-custom-font :is(h1, h2, h3) {
     font-family: var(--arabic-ui-font, var(--font-display)) !important;
     letter-spacing: 0 !important;
     line-height: 1.28 !important;
-}
-
-[role="menuitem"], [role="tab"], button, [class*="button"], [class*="item"], [class*="label"], [class*="name"] {
-    letter-spacing: 0 !important;
-    line-height: 1.35 !important;
-}
-
-[class*="sidebar"] [role="button"], [class*="side"] [role="tab"] {
-    font-size: 15px !important;
 }
