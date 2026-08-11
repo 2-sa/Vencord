@@ -344,7 +344,7 @@ function restoreTranslations() {
 
 export default definePlugin({
     name: "ArabicUI",
-    description: "Translates Discord's interface into Arabic with selectable Arabic fonts.",
+    description: "يترجم واجهة ديسكورد إلى العربية مع إمكانية اختيار الخط العربي.",
     authors: [Devs.TwoSa],
     enabledByDefault: true,
     settings,
