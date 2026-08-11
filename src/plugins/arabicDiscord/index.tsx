@@ -100,23 +100,37 @@ const translatedMonths: Record<string, string> = {
     Sep: "سبتمبر"
 };
 
+function formatArabicCount(value: string, one: string, two: string, few: string, many: string) {
+    const count = Number(value);
+    const lastTwoDigits = count % 100;
+    let form = many;
+
+    if (count === 1) form = one;
+    else if (count === 2) form = two;
+    else if (lastTwoDigits >= 3 && lastTwoDigits <= 10) form = few;
+
+    return `${value} ${form}`;
+}
+
 const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
-    [/^(.+) doesn't have any activity to share here$/, match => `${match[1]} ليس لديه أي نشاط لمشاركته هنا`],
-    [/^You can add (\d+) more people\.$/, match => `يمكنك إضافة ${match[1]} أشخاص آخرين.`],
-    [/^Your invite link expires in (\d+) hours?\.$/, match => `تنتهي صلاحية رابط دعوتك خلال ${match[1]} ساعة.`],
+    [/^(\d+) Items?$/, match => formatArabicCount(match[1], "عنصر", "عنصران", "عناصر", "عنصرًا")],
+    [/^(.+) is not accepting friend requests\. They[’']ll have to add you to become friends\.$/, match => `لا يقبل حساب ${match[1]} طلبات الصداقة. يجب على صاحبه إضافتك لتصبحا صديقين.`],
+    [/^Success! Your friend request to (.+) was sent\.$/, match => `تم إرسال طلب صداقتك إلى ${match[1]} بنجاح.`],
+    [/^(.+) doesn't have any activity to share here$/, match => `لا يوجد لدى ${match[1]} أي نشاط لمشاركته هنا`],
+    [/^You can add (\d+) more people\.$/, match => `يمكنك إضافة ${formatArabicCount(match[1], "شخص آخر", "شخصين آخرين", "أشخاص آخرين", "شخصًا آخر")}.`],
+    [/^Your invite link expires in (\d+) hours?\.$/, match => `تنتهي صلاحية رابط دعوتك بعد ${formatArabicCount(match[1], "ساعة", "ساعتين", "ساعات", "ساعة")}.`],
     [/^Clear tomorrow at (.+)$/, match => `المسح غدًا الساعة ${match[1]}`],
-    [/^(\d+) hours? \(tomorrow at (.+)\)$/, match => `${match[1]} ساعة (غدًا الساعة ${match[2]})`],
-    [/^(\d+) hours? \((.+)\)$/, match => `${match[1]} ساعة (${match[2]})`],
-    [/^(\d+) minutes? \((.+)\)$/, match => `${match[1]} دقيقة (${match[2]})`],
+    [/^(\d+) hours? \(tomorrow at (.+)\)$/, match => `${formatArabicCount(match[1], "ساعة", "ساعتان", "ساعات", "ساعة")} (غدًا الساعة ${match[2]})`],
+    [/^(\d+) hours? \((.+)\)$/, match => `${formatArabicCount(match[1], "ساعة", "ساعتان", "ساعات", "ساعة")} (${match[2]})`],
+    [/^(\d+) minutes? \((.+)\)$/, match => `${formatArabicCount(match[1], "دقيقة", "دقيقتان", "دقائق", "دقيقة")} (${match[2]})`],
     [/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2}), (\d{4})$/, match => `${match[2]} ${translatedMonths[match[1]]} ${match[3]}`],
-    [/^(\d+)\s+connections?$/, match => `${match[1]} ${match[1] === "1" ? "حساب مرتبط" : "حسابات مرتبطة"}`],
-    [/^You may be sharing activity from (\d+) games you play, including (.+)\. Restrict sharing on a game-by-game basis\.$/, match => `قد تشارك نشاط ${match[1]} من الألعاب التي تلعبها، ومنها ${match[2]}. يمكنك تقييد المشاركة لكل لعبة على حدة.`],
-    [/^(\d+)\s+Online$/, match => `${match[1]} متصل`],
-    [/^(\d+)\s+Members$/, match => `${match[1]} عضو`],
-    [/^(\d+)\s+accounts$/, match => `${match[1]} حساباً`],
-    [/^(\d+)\s+Mutual Friends$/, match => `${match[1]} أصدقاء مشتركون`],
-    [/^(\d+)\s+Mutual Servers$/, match => `${match[1]} سيرفرات مشتركة`],
-    [/^(\d+)\s+Mutual Server$/, match => `${match[1]} سيرفر مشترك`],
+    [/^(\d+)\s+connections?$/, match => formatArabicCount(match[1], "حساب مرتبط", "حسابان مرتبطان", "حسابات مرتبطة", "حسابًا مرتبطًا")],
+    [/^You may be sharing activity from (\d+) games you play, including (.+)\. Restrict sharing on a game-by-game basis\.$/, match => `قد تتم مشاركة نشاطك من ${formatArabicCount(match[1], "لعبة واحدة", "لعبتين", "ألعاب", "لعبة")} تلعبها، ومنها ${match[2]}. يمكنك تقييد المشاركة لكل لعبة على حدة.`],
+    [/^(\d+)\s+Online$/, match => formatArabicCount(match[1], "متصل", "متصلان", "متصلون", "متصلًا")],
+    [/^(\d+)\s+Members$/, match => formatArabicCount(match[1], "عضو", "عضوان", "أعضاء", "عضوًا")],
+    [/^(\d+)\s+accounts$/, match => formatArabicCount(match[1], "حساب", "حسابان", "حسابات", "حسابًا")],
+    [/^(\d+)\s+Mutual Friends$/, match => formatArabicCount(match[1], "صديق مشترك", "صديقان مشتركان", "أصدقاء مشتركون", "صديقًا مشتركًا")],
+    [/^(\d+)\s+Mutual Servers?$/, match => formatArabicCount(match[1], "سيرفر مشترك", "سيرفران مشتركان", "سيرفرات مشتركة", "سيرفرًا مشتركًا")],
     [/^Offline\s+[—-]\s+(\d+)$/, match => `غير متصل — ${match[1]}`],
     [/^Activity\s+[—-]\s+(\d+)$/, match => `النشاط — ${match[1]}`],
     [/^Online\s+[—-]\s+(\d+)$/, match => `متصلون — ${match[1]}`],
@@ -130,7 +144,7 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^Average ping:\s*(\d+)\s*ms$/, match => `متوسط الاستجابة: ${match[1]} مللي ثانية`],
     [/^Last ping:\s*(\d+)\s*ms$/, match => `آخر استجابة: ${match[1]} مللي ثانية`],
     [/^Outbound packet loss rate:\s*([\d.]+)%$/, match => `نسبة فقدان الحزم الصادرة: ${match[1]}%`],
-    [/^You can add (\d+) more friends\.$/, match => `يمكنك إضافة ${match[1]} أصدقاء آخرين.`],
+    [/^You can add (\d+) more friends\.$/, match => `يمكنك إضافة ${formatArabicCount(match[1], "صديق آخر", "صديقين آخرين", "أصدقاء آخرين", "صديقًا آخر")}.`],
     [/^EDIT ROLE\s+[—-]\s+(.+)$/, match => `تعديل الرتبة — ${translations[match[1]] ?? match[1]}`],
     [/^Manage Members \((\d+)\)$/, match => `إدارة الأعضاء (${match[1]})`],
     [/^Your current phone number is: (.+)\. Reveal$/, match => `رقم هاتفك الحالي هو: ${match[1]}. إظهار`],
@@ -144,15 +158,15 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^This is the beginning of your direct message history with (.+)\.$/, match => `هذه بداية سجل رسائلك الخاصة مع ${match[1]}.`],
     [/^Ignore (.+)\?$/, match => `تجاهل ${match[1]}؟`],
     [/^You have unsaved changes to the "(.+)" AutoMod rule\. Are you sure you want to stop editing without saving\?$/, match => `لديك تغييرات غير محفوظة في قاعدة الإشراف التلقائي "${translations[match[1]] ?? match[1]}". هل أنت متأكد أنك تريد إيقاف التعديل دون الحفظ؟`],
-    [/^Add up to (\d+) custom emoji that anyone can use in this server\. Animated GIF emoji may be used by members with Discord Nitro\.$/, match => `أضف ما يصل إلى ${match[1]} رمزاً تعبيرياً مخصصاً يمكن لأي شخص استخدامه في هذا السيرفر. يمكن للأعضاء الذين يمتلكون ديسكورد نايترو استخدام الرموز التعبيرية المتحركة بصيغة GIF.`],
+    [/^Add up to (\d+) custom emoji that anyone can use in this server\. Animated GIF emoji may be used by members with Discord Nitro\.$/, match => `أضف ما يصل إلى ${match[1]} رمزًا تعبيريًا مخصصًا يمكن للجميع استخدامه في هذا السيرفر. ويمكن لمشتركي ديسكورد نيترو استخدام الرموز التعبيرية المتحركة بصيغة GIF.`],
     [/^The recommended minimum size is (\d+x\d+) and recommended aspect ratio is ([\d:]+)\.$/, match => `الحد الأدنى الموصى به للحجم هو ${match[1]} ونسبة الأبعاد الموصى بها هي ${match[2]}.`],
     [/^Buy for (.+)$/, match => `شراء بسعر ${match[1]}`],
     [/^Plans start at only (.+?)\/(month|year)\. Cancel anytime$/, match => `تبدأ الخطط من \u200E${match[1]}\u200E/${match[2] === "month" ? "شهر" : "سنة"} فقط. يمكنك الإلغاء في أي وقت`],
     [/^Plans start at only (.+)\. Cancel anytime$/, match => `تبدأ الخطط من \u200E${match[1]}\u200E فقط. يمكنك الإلغاء في أي وقت`],
     [/^(.+)\/month$/, match => `${match[1]}/شهر`],
     [/^(.+)\/year$/, match => `${match[1]}/سنة`],
-    [/^In (\d+) Days?$/, match => `خلال ${match[1]} يوم`],
-    [/^(\d+) Orbs$/, match => `${match[1]} أوربز`],
+    [/^In (\d+) Days?$/, match => `خلال ${formatArabicCount(match[1], "يوم", "يومين", "أيام", "يومًا")}`],
+    [/^(\d+) Orbs$/, match => formatArabicCount(match[1], "أورب", "أوربان", "أوربز", "أوربًا")],
     [/^GOOD MORNING,?$/, () => "صباح الخير،"],
     [/^GOOD AFTERNOON,?$/, () => "مساء الخير،"],
     [/^GOOD EVENING,?$/, () => "مساء الخير،"],
@@ -184,10 +198,16 @@ function translateCallDuration(value: string) {
     if (normalized === "a minute") return "دقيقة";
     if (normalized === "an hour") return "ساعة";
 
-    return normalized
-        .replace(/^(\d+) seconds?$/, "$1 ثانية")
-        .replace(/^(\d+) minutes?$/, "$1 دقيقة")
-        .replace(/^(\d+) hours?$/, "$1 ساعة");
+    const duration = normalized.match(/^(\d+) (seconds?|minutes?|hours?)$/);
+    if (!duration) return normalized;
+
+    if (duration[2].startsWith("second")) {
+        return formatArabicCount(duration[1], "ثانية", "ثانيتان", "ثوانٍ", "ثانية");
+    }
+    if (duration[2].startsWith("minute")) {
+        return formatArabicCount(duration[1], "دقيقة", "دقيقتان", "دقائق", "دقيقة");
+    }
+    return formatArabicCount(duration[1], "ساعة", "ساعتان", "ساعات", "ساعة");
 }
 
 function normalize(value: string) {
