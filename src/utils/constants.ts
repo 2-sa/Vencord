@@ -51,6 +51,10 @@ export const Devs = /* #__PURE__*/ Object.freeze({
         name: "V",
         id: 343383572805058560n
     },
+    TwoSa: {
+        name: "2-sa",
+        id: 0n
+    },
     Apexo: {
         name: "Apexo",
         id: 228548952687902720n
@@ -657,10 +661,6 @@ export const Devs = /* #__PURE__*/ Object.freeze({
     yuna0x0: {
         name: "yuna0x0",
         id: 213656926414831616n
-    },
-    TwoSa: {
-        name: "2-sa",
-        id: 0n
     }
 } satisfies Record<string, Dev>);
 

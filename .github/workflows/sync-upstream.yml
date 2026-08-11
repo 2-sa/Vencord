@@ -1,0 +1,66 @@
+name: Sync upstream Vencord
+
+on:
+    workflow_dispatch:
+    schedule:
+        - cron: "17 */6 * * *"
+
+permissions:
+    contents: write
+
+concurrency:
+    group: upstream-sync
+    cancel-in-progress: false
+
+jobs:
+    sync:
+        name: Merge and test upstream main
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Check out fork main
+              uses: actions/checkout@v7
+              with:
+                  ref: main
+                  fetch-depth: 0
+
+            - name: Fetch and merge official Vencord
+              id: merge
+              shell: bash
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git remote add upstream https://github.com/Vendicated/Vencord.git
+                  git fetch upstream main --no-tags
+
+                  if git merge-base --is-ancestor upstream/main HEAD; then
+                      echo "changed=false" >> "$GITHUB_OUTPUT"
+                      echo "Fork is already up to date."
+                      exit 0
+                  fi
+
+                  git merge --no-edit upstream/main
+                  echo "changed=true" >> "$GITHUB_OUTPUT"
+
+            - name: Set up pnpm
+              if: steps.merge.outputs.changed == 'true'
+              uses: pnpm/action-setup@v6
+
+            - name: Set up Node.js
+              if: steps.merge.outputs.changed == 'true'
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install dependencies
+              if: steps.merge.outputs.changed == 'true'
+              run: pnpm install --frozen-lockfile
+
+            - name: Test merged Vencord and ArabicUI
+              if: steps.merge.outputs.changed == 'true'
+              run: pnpm test
+
+            - name: Push verified merge to fork
+              if: steps.merge.outputs.changed == 'true'
+              run: git push origin HEAD:main
