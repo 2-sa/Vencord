@@ -86,6 +86,8 @@ const settings = definePluginSettings({
 });
 
 const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
+    [/^(\d+)\s+connections?$/, match => `${match[1]} ${match[1] === "1" ? "حساب مرتبط" : "حسابات مرتبطة"}`],
+    [/^You may be sharing activity from (\d+) games you play, including (.+)\. Restrict sharing on a game-by-game basis\.$/, match => `قد تشارك نشاط ${match[1]} من الألعاب التي تلعبها، ومنها ${match[2]}. يمكنك تقييد المشاركة لكل لعبة على حدة.`],
     [/^(\d+)\s+Online$/, match => `${match[1]} متصل`],
     [/^(\d+)\s+Members$/, match => `${match[1]} عضو`],
     [/^(\d+)\s+accounts$/, match => `${match[1]} حساباً`],
@@ -263,12 +265,15 @@ function translateAttributes(element: Element) {
 }
 
 function translateTree(root: Node) {
-    if (isInsideExcludedTree(root)) return;
     if (root instanceof Element) translateAttributes(root);
+    if (isInsideExcludedTree(root)) return;
 
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
         acceptNode(node) {
-            if (node instanceof Element && isExcluded(node)) return NodeFilter.FILTER_REJECT;
+            if (node instanceof Element && isExcluded(node)) {
+                translateAttributes(node);
+                return NodeFilter.FILTER_REJECT;
+            }
             return NodeFilter.FILTER_ACCEPT;
         }
     });
@@ -310,9 +315,12 @@ function flushMutations() {
     removedRoots.clear();
 
     for (const node of pendingNodes) {
-        if (!node.isConnected || isInsideExcludedTree(node)) continue;
-        if (node instanceof Text) translateTextNode(node);
-        else if (node instanceof Element) translateAttributes(node);
+        if (!node.isConnected) continue;
+        if (node instanceof Element) {
+            translateAttributes(node);
+            continue;
+        }
+        if (!isInsideExcludedTree(node) && node instanceof Text) translateTextNode(node);
     }
     pendingNodes.clear();
 
