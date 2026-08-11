@@ -1,0 +1,134 @@
+name: Release ArabicUI Vencord
+
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - main
+        paths:
+            - .github/workflows/arabicui-release.yml
+            - src/plugins/arabicDiscord/**
+            - src/utils/constants.ts
+            - scripts/build/**
+            - package.json
+            - pnpm-lock.yaml
+
+permissions:
+    contents: write
+
+concurrency:
+    group: arabicui-release
+    cancel-in-progress: true
+
+env:
+    FORCE_COLOR: true
+
+jobs:
+    release:
+        name: Build and publish Windows release
+        runs-on: windows-latest
+
+        steps:
+            - name: Check out Vencord
+              uses: actions/checkout@v7
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v6
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Install Vencord dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Test Vencord and plugins
+              run: pnpm test
+
+            - name: Check out official installer
+              run: git clone --depth 1 https://github.com/Vencord/Installer.git installer
+
+            - name: Point installer at ArabicUI releases
+              shell: pwsh
+              run: |
+                  $releaseApi = "https://api.github.com/repos/${{ github.repository }}/releases/latest"
+                  $constantsPath = "installer/constants.go"
+                  $constants = Get-Content -LiteralPath $constantsPath -Raw
+                  $constants = $constants.Replace('const ReleaseUrl = "https://api.github.com/repos/Vendicated/Vencord/releases/latest"', "const ReleaseUrl = `"$releaseApi`"")
+                  $constants = $constants.Replace('const ReleaseUrlFallback = "https://vencord.dev/releases/vencord"', "const ReleaseUrlFallback = `"$releaseApi`"")
+                  Set-Content -LiteralPath $constantsPath -Value $constants -Encoding utf8NoBOM
+
+            - name: Set up MSYS2 build tools
+              uses: msys2/setup-msys2@v2
+              with:
+                  update: true
+                  install: >-
+                      git
+                      mingw-w64-x86_64-gcc
+                      mingw-w64-x86_64-SDL2
+                      mingw-w64-x86_64-go
+
+            - name: Build VencordInstaller.exe
+              shell: msys2 {0}
+              working-directory: installer
+              run: |
+                  export GOROOT=/mingw64/lib/go
+                  export GOPATH=/mingw64
+                  go install github.com/tc-hib/go-winres@latest
+                  go-winres make --product-version 1.0.0
+                  installer_hash="$(git rev-parse --short HEAD)"
+                  CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags static -ldflags "-s -w -H=windowsgui -extldflags=-static -X vencordinstaller/buildinfo.InstallerGitHash=$installer_hash" -o ../VencordInstaller.exe
+
+            - name: Verify release files
+              shell: pwsh
+              run: |
+                  $files = @(
+                      "VencordInstaller.exe",
+                      "dist/patcher.js",
+                      "dist/preload.js",
+                      "dist/renderer.js",
+                      "dist/renderer.css"
+                  )
+                  foreach ($file in $files) {
+                      if (-not (Test-Path -LiteralPath $file)) {
+                          throw "Required release file is missing: $file"
+                      }
+                  }
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ArabicUI-Vencord-${{ github.sha }}
+                  path: |
+                      VencordInstaller.exe
+                      dist/patcher.js
+                      dist/preload.js
+                      dist/renderer.js
+                      dist/renderer.css
+                  if-no-files-found: error
+
+            - name: Publish GitHub release
+              shell: pwsh
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  $shortSha = "${{ github.sha }}".Substring(0, 7)
+                  $tag = "arabicui-$shortSha"
+                  $title = "ArabicUI Vencord $shortSha"
+                  $notes = "Vencord with the optimized ArabicUI plugin enabled by default. The installer uses the original Vencord interface."
+
+                  if (gh release view $tag 2>$null) {
+                      gh release edit $tag --target "${{ github.sha }}" --title $title --notes $notes --latest
+                  } else {
+                      gh release create $tag --target "${{ github.sha }}" --title $title --notes $notes --latest
+                  }
+
+                  gh release upload $tag `
+                      VencordInstaller.exe `
+                      dist/patcher.js `
+                      dist/preload.js `
+                      dist/renderer.js `
+                      dist/renderer.css `
+                      --clobber
