@@ -6,6 +6,7 @@ on:
         - cron: "17 */6 * * *"
 
 permissions:
+    actions: write
     contents: write
 
 concurrency:
@@ -64,3 +65,9 @@ jobs:
             - name: Push verified merge to fork
               if: steps.merge.outputs.changed == 'true'
               run: git push origin HEAD:main
+
+            - name: Build and publish merged update
+              if: steps.merge.outputs.changed == 'true'
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: gh workflow run arabicui-release.yml --ref main
