@@ -85,7 +85,30 @@ const settings = definePluginSettings({
     }
 });
 
+const translatedMonths: Record<string, string> = {
+    Apr: "أبريل",
+    Aug: "أغسطس",
+    Dec: "ديسمبر",
+    Feb: "فبراير",
+    Jan: "يناير",
+    Jul: "يوليو",
+    Jun: "يونيو",
+    Mar: "مارس",
+    May: "مايو",
+    Nov: "نوفمبر",
+    Oct: "أكتوبر",
+    Sep: "سبتمبر"
+};
+
 const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
+    [/^(.+) doesn't have any activity to share here$/, match => `${match[1]} ليس لديه أي نشاط لمشاركته هنا`],
+    [/^You can add (\d+) more people\.$/, match => `يمكنك إضافة ${match[1]} أشخاص آخرين.`],
+    [/^Your invite link expires in (\d+) hours?\.$/, match => `تنتهي صلاحية رابط دعوتك خلال ${match[1]} ساعة.`],
+    [/^Clear tomorrow at (.+)$/, match => `المسح غدًا الساعة ${match[1]}`],
+    [/^(\d+) hours? \(tomorrow at (.+)\)$/, match => `${match[1]} ساعة (غدًا الساعة ${match[2]})`],
+    [/^(\d+) hours? \((.+)\)$/, match => `${match[1]} ساعة (${match[2]})`],
+    [/^(\d+) minutes? \((.+)\)$/, match => `${match[1]} دقيقة (${match[2]})`],
+    [/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2}), (\d{4})$/, match => `${match[2]} ${translatedMonths[match[1]]} ${match[3]}`],
     [/^(\d+)\s+connections?$/, match => `${match[1]} ${match[1] === "1" ? "حساب مرتبط" : "حسابات مرتبطة"}`],
     [/^You may be sharing activity from (\d+) games you play, including (.+)\. Restrict sharing on a game-by-game basis\.$/, match => `قد تشارك نشاط ${match[1]} من الألعاب التي تلعبها، ومنها ${match[2]}. يمكنك تقييد المشاركة لكل لعبة على حدة.`],
     [/^(\d+)\s+Online$/, match => `${match[1]} متصل`],
