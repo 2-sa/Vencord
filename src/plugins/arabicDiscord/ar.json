@@ -2267,5 +2267,11 @@
     "Temporary members are automatically kicked when they disconnect unless a role has been assigned": "يُطرد الأعضاء المؤقتون تلقائيًا عند قطع الاتصال ما لم تُسند إليهم رتبة.",
     "Generate a New Link": "إنشاء رابط جديد",
     "Download": "تنزيل",
-    "Modify Attachment": "تعديل المرفق"
+    "Modify Attachment": "تعديل المرفق",
+    "Allows members to use sounds from other servers in this channel, if they’re a Discord Nitro member.": "يسمح للأعضاء باستخدام أصوات من سيرفرات أخرى في هذه القناة إذا كانوا مشتركين في نيترو.",
+    "Allows members to use sounds from other servers in this channel, if they're a Discord Nitro member.": "يسمح للأعضاء باستخدام أصوات من سيرفرات أخرى في هذه القناة إذا كانوا مشتركين في نيترو.",
+    "Invite to Activity": "دعوة إلى النشاط",
+    "Start an Activity": "بدء نشاط",
+    "Hide Stream Preview": "إخفاء معاينة البث",
+    "Open In Mod View": "فتح في وضع المود"
 }
