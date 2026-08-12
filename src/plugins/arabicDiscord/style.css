@@ -1,15 +1,20 @@
 .vc-arabic-ui-custom-font body {
     font-family: var(--arabic-ui-font, var(--font-primary)) !important;
     font-feature-settings: normal;
+    font-kerning: normal;
+    font-synthesis: none;
+    font-variant-ligatures: common-ligatures contextual;
     letter-spacing: 0 !important;
 }
 
-.vc-arabic-ui-custom-font :is(button, input, textarea, select) {
+.vc-arabic-ui-custom-font :is(button, input, textarea, select, option) {
     font-family: inherit !important;
+    letter-spacing: 0 !important;
 }
 
 .vc-arabic-ui-custom-font :is(h1, h2, h3) {
     font-family: var(--arabic-ui-font, var(--font-display)) !important;
+    font-weight: 600;
     letter-spacing: 0 !important;
-    line-height: 1.28 !important;
+    line-height: var(--arabic-ui-line-height, 1.38) !important;
 }
