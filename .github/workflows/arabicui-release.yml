@@ -17,8 +17,8 @@ env:
     FORCE_COLOR: true
 
 jobs:
-    release:
-        name: Build and publish Windows release
+    build-windows:
+        name: Build Windows installer
         runs-on: windows-latest
 
         steps:
@@ -93,7 +93,7 @@ jobs:
             - name: Upload build artifact
               uses: actions/upload-artifact@v7
               with:
-                  name: ArabicUI-Vencord-${{ github.sha }}
+                  name: ArabicUI-Windows-${{ github.sha }}
                   path: |
                       VencordInstaller.exe
                       dist/patcher.js
@@ -102,26 +102,128 @@ jobs:
                       dist/renderer.css
                   if-no-files-found: error
 
+    build-macos:
+        name: Build universal macOS installer
+        runs-on: macos-latest
+
+        steps:
+            - name: Check out Vencord
+              uses: actions/checkout@v7
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v6
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: pnpm
+
+            - name: Set up Go
+              uses: actions/setup-go@v7
+              with:
+                  go-version: "1.26"
+                  cache: false
+
+            - name: Install Vencord dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Test Vencord and plugins
+              run: pnpm test
+
+            - name: Check out official installer
+              run: git clone --depth 1 https://github.com/Vencord/Installer.git installer
+
+            - name: Point installer at ArabicUI releases
+              env:
+                  RELEASE_API: https://api.github.com/repos/${{ github.repository }}/releases/latest
+              run: |
+                  python3 - <<'PY'
+                  import os
+                  from pathlib import Path
+
+                  path = Path("installer/constants.go")
+                  contents = path.read_text()
+                  original = contents
+                  contents = contents.replace(
+                      'const ReleaseUrl = "https://api.github.com/repos/Vendicated/Vencord/releases/latest"',
+                      f'const ReleaseUrl = "{os.environ["RELEASE_API"]}"',
+                  )
+                  contents = contents.replace(
+                      'const ReleaseUrlFallback = "https://vencord.dev/releases/vencord"',
+                      f'const ReleaseUrlFallback = "{os.environ["RELEASE_API"]}"',
+                  )
+                  if contents == original or contents.count(os.environ["RELEASE_API"]) != 2:
+                      raise SystemExit("Could not configure the installer release URL")
+                  path.write_text(contents)
+                  PY
+
+            - name: Install macOS build tools
+              run: brew install pkg-config sdl2 create-dmg
+
+            - name: Build universal DMG
+              working-directory: installer
+              run: |
+                  short_sha="${GITHUB_SHA::7}"
+                  make ARCH=universal GUI=1 DMG=1 VERSION="arabicui-$short_sha"
+                  cp build/VencordInstaller.dmg ../ArabicUI-Vencord-macOS-Universal.dmg
+
+            - name: Verify macOS release file
+              run: |
+                  test -s ArabicUI-Vencord-macOS-Universal.dmg
+                  file ArabicUI-Vencord-macOS-Universal.dmg
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ArabicUI-macOS-${{ github.sha }}
+                  path: ArabicUI-Vencord-macOS-Universal.dmg
+                  if-no-files-found: error
+
+    publish:
+        name: Publish ArabicUI release
+        runs-on: ubuntu-latest
+        needs:
+            - build-windows
+            - build-macos
+
+        steps:
+            - name: Download release files
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: ArabicUI-*-${{ github.sha }}
+                  path: release-assets
+                  merge-multiple: true
+
+            - name: Verify release files
+              run: |
+                  test -s release-assets/VencordInstaller.exe
+                  test -s release-assets/ArabicUI-Vencord-macOS-Universal.dmg
+                  test -s release-assets/dist/patcher.js
+                  test -s release-assets/dist/preload.js
+                  test -s release-assets/dist/renderer.js
+                  test -s release-assets/dist/renderer.css
+
             - name: Publish GitHub release
-              shell: pwsh
               env:
                   GH_TOKEN: ${{ github.token }}
               run: |
-                  $shortSha = "${{ github.sha }}".Substring(0, 7)
-                  $tag = "arabicui-$shortSha"
-                  $title = "ArabicUI Vencord $shortSha"
-                  $notes = "Vencord with the optimized ArabicUI plugin enabled by default. The installer uses the original Vencord interface."
+                  short_sha="${GITHUB_SHA::7}"
+                  tag="arabicui-$short_sha"
+                  title="ArabicUI Vencord $short_sha"
+                  notes="Vencord with the optimized ArabicUI plugin enabled by default. Includes the Windows installer and a universal macOS installer for Apple Silicon and Intel Macs. The installer uses the original Vencord interface."
 
-                  if (gh release view $tag 2>$null) {
-                      gh release edit $tag --target "${{ github.sha }}" --title $title --notes $notes --latest
-                  } else {
-                      gh release create $tag --target "${{ github.sha }}" --title $title --notes $notes --latest
-                  }
+                  if gh release view "$tag" >/dev/null 2>&1; then
+                      gh release edit "$tag" --target "$GITHUB_SHA" --title "$title" --notes "$notes" --latest
+                  else
+                      gh release create "$tag" --target "$GITHUB_SHA" --title "$title" --notes "$notes" --latest
+                  fi
 
-                  gh release upload $tag `
-                      VencordInstaller.exe `
-                      dist/patcher.js `
-                      dist/preload.js `
-                      dist/renderer.js `
-                      dist/renderer.css `
+                  gh release upload "$tag" \
+                      release-assets/VencordInstaller.exe \
+                      release-assets/ArabicUI-Vencord-macOS-Universal.dmg \
+                      release-assets/dist/patcher.js \
+                      release-assets/dist/preload.js \
+                      release-assets/dist/renderer.js \
+                      release-assets/dist/renderer.css \
                       --clobber
