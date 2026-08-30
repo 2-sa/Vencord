@@ -2988,6 +2988,28 @@
     "Contributions": "المساهمات",
     "Thank you for contributing!": "شكرًا لمساهمتك!",
     "Since you've contributed to Vencord you now have a cool new badge!": "بما أنك ساهمت في Vencord، لديك الآن شارة جديدة مميزة!",
-    "See what you've contributed to": "شاهد ما ساهمت فيه"
+    "See what you've contributed to": "شاهد ما ساهمت فيه",
+
+    "Settings": "الإعدادات",
+    "Hint: You can change the position of this settings section in the ": "تلميح: يمكنك تغيير موضع قسم الإعدادات هذا من ",
+    "settings of the Settings plugin": "إعدادات إضافة Settings",
+    "Enable Custom CSS": "تفعيل CSS مخصص",
+    "Apply your configured QuickCSS": "تطبيق إعدادات QuickCSS الخاصة بك",
+    "Disable the window frame": "تعطيل إطار النافذة",
+    "Use Windows' native title bar instead of Discord's custom one": "استخدام شريط عنوان ويندوز بدلاً من شريط ديسكورد المخصص",
+    "Enable window transparency": "تفعيل شفافية النافذة",
+    "A theme that supports transparency is required or this will do nothing. Stops the window from being resizable as a side effect": "يتطلب هذا الخيار ثيمًا يدعم الشفافية، وإلاّ فلن يكون له تأثير. وقد يمنع أيضًا تغيير حجم النافذة",
+    "Disable minimum window size": "تعطيل الحد الأدنى لحجم النافذة",
+    "Allows you to resize the window to any size, even smaller than Discord's minimum size": "يتيح لك تغيير حجم النافذة لأي مقاس، حتى أصغر من الحد الأدنى لـ Discord",
+    "Register Ctrl+Q as shortcut to close Discord (Alternative to Alt+F4)": "تسجيل Ctrl+Q كاختصار لإغلاق ديسكورد (بديل Alt+F4)",
+    "Enable React Developer Tools": "تفعيل أدوات مطوّر React",
+    "Mainly useful for plugin developers. Ignore this if you don't know what it is": "مفيدة بشكل أساسي لمطوري الإضافات. تجاهل هذا الخيار إن لم تعرف ما هو",
+
+    "Background Material": "مادة الخلفية",
+    "Windows transparent background effects. You need a theme that supports transparency or this will do nothing. A restart is required after changing this setting.": "تأثيرات الخلفية الشفافة في ويندوز. يتطلب هذا الخيار ثيمًا يدعم الشفافية، ويلزم إعادة التشغيل بعد تغييره.",
+    "None": "بدون",
+    "Mica (incorporates system theme + desktop wallpaper to paint the background)": "Mica (يدمج ثيم النظام + خلفية سطح المكتب لرسم الخلفية)",
+    "Tabbed (variant of Mica with stronger background tinting)": "Tabbed (نسخة من Mica مع تلوين خلفية أقوى)",
+    "Acrylic (blurs the window behind Vesktop for a translucent background)": "Acrylic (يضبّب النافذة خلف Vesktop لخلفية شبه شفافة)"
 }
 
