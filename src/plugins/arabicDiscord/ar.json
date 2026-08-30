@@ -3010,6 +3010,34 @@
     "None": "بدون",
     "Mica (incorporates system theme + desktop wallpaper to paint the background)": "Mica (يدمج ثيم النظام + خلفية سطح المكتب لرسم الخلفية)",
     "Tabbed (variant of Mica with stronger background tinting)": "Tabbed (نسخة من Mica مع تلوين خلفية أقوى)",
-    "Acrylic (blurs the window behind Vesktop for a translucent background)": "Acrylic (يضبّب النافذة خلف Vesktop لخلفية شبه شفافة)"
+    "Acrylic (blurs the window behind Vesktop for a translucent background)": "Acrylic (يضبّب النافذة خلف Vesktop لخلفية شبه شفافة)",
+
+    "The Gifting Badge": "شارة الإهداء",
+    "Patron": "الداعم",
+    "Champion": "البطل",
+    "Luminary": "النجم",
+    "Hero": "البطل الخارق",
+    "Legend": "الأسطورة",
+    "Gifted 1x": "أهدى مرة",
+    "Gifted 2x": "أهدى مرتين",
+    "Gifted 3x": "أهدى 3 مرات",
+    "Gifted 6x": "أهدى 6 مرات",
+    "Gifted 10x": "أهدى 10 مرات",
+    "Gifted 20x": "أهدى 20 مرة",
+    "Your badge progresses as you gift. Exceptions include when a gift is refunded or when fraud is detected.": "تتطور شارتك كلما أهديت. تُستثنى الحالات التي يُسترد فيها الإهداء أو يُكشف فيها احتيال.",
+    "Send a Gift": "أرسل هدية",
+
+    "You subscribed through Google": "لقد اشتركت عبر Google",
+    "visit your Google Billing settings": "انتقل إلى إعدادات فوترة Google",
+
+    "Games & Apps": "الألعاب والتطبيقات",
+    "Connected Apps": "التطبيقات المتصلة",
+
+    "Best dad joke?": "أفضل نكتة أب؟",
+
+    "Favorite Game": "اللعبة المفضلة",
+    "Games I Like": "ألعاب أحبها",
+    "Games in Rotation": "ألعاب أتنقل بينها",
+    "Want to Play": "أريد تجربتها"
 }
 
