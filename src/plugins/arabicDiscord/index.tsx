@@ -203,7 +203,9 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^GOOD AFTERNOON,?$/, () => "مساء الخير،"],
     [/^GOOD EVENING,?$/, () => "مساء الخير،"],
     [/^Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `افتح صندوق الوارد بالضغط على ${match[1]}، وحدد أول رسالة كمقروءة بالضغط على ${match[2]}.`],
-    [/^PROTIP: Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `نصيحة احترافية: افتح صندوق الوارد بالضغط على ${match[1]}، وحدد أول رسالة كمقروءة بالضغط على ${match[2]}.`]
+    [/^PROTIP: Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `نصيحة احترافية: افتح صندوق الوارد بالضغط على ${match[1]}، وحدد أول رسالة كمقروءة بالضغط على ${match[2]}.`],
+    [/^(.+)'s Reviews$/, match => `تقييمات ${match[1]}`],
+    [/^\((\d+) Reviews\)$/, match => `(${match[1]} تقييم)`]
 ];
 
 // --- State ---

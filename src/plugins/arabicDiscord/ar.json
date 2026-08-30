@@ -2949,6 +2949,15 @@
     "Plugin Settings": "إعدادات الإضافات",
     "Import Settings": "استيراد الإعدادات",
     "Export Settings": "تصدير الإعدادات",
-    "Backup & Restore": "النسخ الاحتياطي والاستعادة"
+    "Backup & Restore": "النسخ الاحتياطي والاستعادة",
+
+    "User Reviews": "تقييمات المستخدم",
+    "No reviews yet": "لا توجد تقييمات بعد",
+    "User opted out": "المستخدم اختار عدم المشاركة",
+    "View Reviews": "عرض التقييمات",
+    "Reviews": "التقييمات",
+    "Review": "تقييم",
+    "Looks like nobody reviewed this user yet. You could be the first!": "يبدو أنه لم يقيّم أحد هذا المستخدم بعد. يمكنك أن تكون الأول!",
+    "Looks like nobody reviewed this server yet. You could be the first!": "يبدو أنه لم يقيّم أحد هذا السيرفر بعد. يمكنك أن تكون الأول!"
 }
 
