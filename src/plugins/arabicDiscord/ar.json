@@ -2958,6 +2958,36 @@
     "Reviews": "التقييمات",
     "Review": "تقييم",
     "Looks like nobody reviewed this user yet. You could be the first!": "يبدو أنه لم يقيّم أحد هذا المستخدم بعد. يمكنك أن تكون الأول!",
-    "Looks like nobody reviewed this server yet. You could be the first!": "يبدو أنه لم يقيّم أحد هذا السيرفر بعد. يمكنك أن تكون الأول!"
+    "Looks like nobody reviewed this server yet. You could be the first!": "يبدو أنه لم يقيّم أحد هذا السيرفر بعد. يمكنك أن تكون الأول!",
+
+    "Accessibility": "إمكانية الوصول",
+    "Activity": "النشاط",
+    "Appearance": "المظهر",
+    "Chat": "المحادثة",
+    "Commands": "الأوامر",
+    "Console": "وحدة التحكم",
+    "Customisation": "التخصيص",
+    "Developers": "المطورون",
+    "Emotes": "الإيموجي",
+    "Friends": "الأصدقاء",
+    "Fun": "ترفيه",
+    "Media": "الوسائط",
+    "Notifications": "الإشعارات",
+    "Organisation": "التنظيم",
+    "Privacy": "الخصوصية",
+    "Reactions": "التفاعلات",
+    "Roles": "الأدوار",
+    "Servers": "السيرفرات",
+    "Shortcuts": "الاختصارات",
+    "Utility": "أدوات مساعدة",
+    "Voice": "الصوت",
+
+    "Support the Project": "ادعم المشروع",
+    "Please consider supporting the development of Vencord by donating!": "يرجى التفكير في دعم تطوير Vencord عبر التبرع!",
+    "Donate": "تبرّع",
+    "Contributions": "المساهمات",
+    "Thank you for contributing!": "شكرًا لمساهمتك!",
+    "Since you've contributed to Vencord you now have a cool new badge!": "بما أنك ساهمت في Vencord، لديك الآن شارة جديدة مميزة!",
+    "See what you've contributed to": "شاهد ما ساهمت فيه"
 }
 
