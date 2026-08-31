@@ -205,7 +205,8 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `افتح صندوق الوارد بالضغط على ${match[1]}، وحدد أول رسالة كمقروءة بالضغط على ${match[2]}.`],
     [/^PROTIP: Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `نصيحة احترافية: افتح صندوق الوارد بالضغط على ${match[1]}، وحدد أول رسالة كمقروءة بالضغط على ${match[2]}.`],
     [/^(.+)'s Reviews$/, match => `تقييمات ${match[1]}`],
-    [/^\((\d+) Reviews\)$/, match => `(${match[1]} تقييم)`]
+    [/^\((\d+) Reviews\)$/, match => `(${match[1]} تقييم)`],
+    [/^(.+) gave (\d+) boosts?\.?$/, match => `${match[1]} منح ${formatArabicCount(match[2], "بوست", "بوستان", "بوستات", "بوستًا")}.`]
 ];
 
 // --- State ---
