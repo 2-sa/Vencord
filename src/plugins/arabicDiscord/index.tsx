@@ -206,7 +206,13 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^PROTIP: Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `نصيحة احترافية: افتح صندوق الوارد بالضغط على ${match[1]}، وحدد أول رسالة كمقروءة بالضغط على ${match[2]}.`],
     [/^(.+)'s Reviews$/, match => `تقييمات ${match[1]}`],
     [/^\((\d+) Reviews\)$/, match => `(${match[1]} تقييم)`],
-    [/^(.+) gave (\d+) boosts?\.?$/, match => `${match[1]} منح ${formatArabicCount(match[2], "بوست", "بوستان", "بوستات", "بوستًا")}.`]
+    [/^(.+) gave (\d+) boosts?\.?$/, match => `${match[1]} منح ${formatArabicCount(match[2], "بوست", "بوستان", "بوستات", "بوستًا")}.`],
+    [/^Invite friends to (.+)$/, match => `دعوة أصدقاء إلى ${match[1]}`],
+    [/^Recipients will land in (.+)$/, match => `سيدخل المستلمون إلى ${match[1]}`],
+    [/^Permissions not synced with category:\s*(.+)$/, match => `الأذونات غير متزامنة مع التصنيف: ${match[1]}`],
+    [/^Review @(.+)$/, match => `تقييم @${match[1]}`],
+    [/^Update review for @(.+)$/, match => `تحديث التقييم لـ @${match[1]}`],
+    [/^'s Reviews$/, () => " — التقييمات"]
 ];
 
 // --- State ---
