@@ -3044,6 +3044,14 @@
     "Open Chat": "فتح المحادثة",
     "Invite to Voice": "دعوة إلى الصوت",
     "Set the vibe": "اختر الأجواء",
-    "Muted": "مكتوم"
+    "Muted": "مكتوم",
+
+    "Invite to Channel": "دعوة إلى القناة",
+    "Pin Channel to Top": "تثبيت القناة في الأعلى",
+    "Unpin Channel": "إلغاء تثبيت القناة",
+    "Unpin Channel from Top": "إلغاء تثبيت القناة من الأعلى",
+    "Duplicate Channel": "تكرار القناة",
+    "Create Text Channel": "إنشاء قناة نصية",
+    "Create Voice Channel": "إنشاء قناة صوتية"
 }
 
