@@ -212,7 +212,8 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^Permissions not synced with category:\s*(.+)$/, match => `الأذونات غير متزامنة مع التصنيف: ${match[1]}`],
     [/^Review @(.+)$/, match => `تقييم @${match[1]}`],
     [/^Update review for @(.+)$/, match => `تحديث التقييم لـ @${match[1]}`],
-    [/^'s Reviews$/, () => " — التقييمات"]
+    [/^'s Reviews$/, () => " — التقييمات"],
+    [/^This is the beginning of your direct message history with (.+)$/, match => `هذه هي بداية سجل رسائلك المباشرة مع ${match[1]}`]
 ];
 
 // --- State ---

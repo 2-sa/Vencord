@@ -3145,6 +3145,25 @@
     "Learn more about end-to-end encryption": "معرفة المزيد عن التشفير التام بين الطرفين",
     "Only you and your friends on this call can hear you. Nobody else – not even Wumpus – can listen in!": "أنت وأصدقاؤك في هذه المكالمة فقط من يمكنهم سماعك. لا أحد غيركم — ولا حتى Wumpus — يمكنه الاستماع!",
     "Only you and your friends on this call can hear you. Nobody else - not even Wumpus - can listen in!": "أنت وأصدقاؤك في هذه المكالمة فقط من يمكنهم سماعك. لا أحد غيركم — ولا حتى Wumpus — يمكنه الاستماع!",
-    "Only you and your friends on this call can hear you. Nobody else — not even Wumpus — can listen in!": "أنت وأصدقاؤك في هذه المكالمة فقط من يمكنهم سماعك. لا أحد غيركم — ولا حتى Wumpus — يمكنه الاستماع!"
+    "Only you and your friends on this call can hear you. Nobody else — not even Wumpus — can listen in!": "أنت وأصدقاؤك في هذه المكالمة فقط من يمكنهم سماعك. لا أحد غيركم — ولا حتى Wumpus — يمكنه الاستماع!",
+
+    "No mutual friends yet - perfect time to make a new connection": "لا يوجد أصدقاء مشتركون بعد - وقت مثالي لبناء صداقة جديدة",
+    "No mutual friends yet – perfect time to make a new connection": "لا يوجد أصدقاء مشتركون بعد - وقت مثالي لبناء صداقة جديدة",
+    "No mutual friends yet — perfect time to make a new connection": "لا يوجد أصدقاء مشتركون بعد - وقت مثالي لبناء صداقة جديدة",
+    "Your friend networks are like separate galaxies - time for them to collide!": "شبكات أصدقائكما تشبه مجرات منفصلة - حان وقت التقائهما!",
+    "Your friend networks are like separate galaxies – time for them to collide!": "شبكات أصدقائكما تشبه مجرات منفصلة - حان وقت التقائهما!",
+    "Your friend networks are like separate galaxies — time for them to collide!": "شبكات أصدقائكما تشبه مجرات منفصلة - حان وقت التقائهما!",
+    "No mutual servers yet": "لا توجد سيرفرات مشتركة بعد",
+    "No mutual servers": "لا توجد سيرفرات مشتركة",
+    "No mutual friends": "لا يوجد أصدقاء مشتركون",
+    "No mutual friends yet": "لا يوجد أصدقاء مشتركون بعد",
+    "Mutual Friends": "الأصدقاء المشتركون",
+    "Mutual Servers": "السيرفرات المشتركة",
+
+    "This is the beginning of your direct message history with": "هذه هي بداية سجل رسائلك المباشرة مع",
+    "This is the beginning of your direct message history with ": "هذه هي بداية سجل رسائلك المباشرة مع ",
+
+    "Join Voice": "الانضمام إلى الصوت",
+    "Leave Voice": "مغادرة الصوت"
 }
 
