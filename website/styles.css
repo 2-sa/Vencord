@@ -2,3 +2,21 @@
 :is(.hero-copy,.download-layout>div,.faq-section>div){min-width:0}
 @media(max-width:720px){h1 br{display:block}h1>span{margin-inline-start:0}.hero-copy h1{overflow-wrap:normal}}
 .project-sources{padding-block:0 45px;color:var(--muted);font-size:13px}.project-sources h2{font-family:var(--display);font-size:19px;color:var(--ink)}.project-sources a{text-decoration:underline;text-underline-offset:4px;color:var(--purple)}
+/* Readable Arabic typography: connected letters, larger body copy and touch targets. */
+:root{--display:"Noto Sans Arabic",Tahoma,Arial,sans-serif;--body:"Noto Sans Arabic",Tahoma,Arial,sans-serif;--muted:#565469}
+body{font-size:17px;line-height:1.95}
+h1,.section-title,.eyebrow{letter-spacing:normal}
+h1{font-size:clamp(48px,5vw,70px);font-weight:700;line-height:1.65}
+.intro,.section-copy,.benefits p,.steps p,.faq-list p,.project-sources{font-size:16px;line-height:2}
+.header nav,.text-link,.faq-list summary{font-size:15px}
+.eyebrow,.micro,.preview-caption,.download-note,.release-status,.install-tip,.footer,.download-card small{font-size:13px}
+.benefits h2,.steps h3{font-size:20px}
+.language-switch button,.platform-switch button{min-height:44px;font-size:13px}
+.demo-sidebar{font-size:12px}.demo-sidebar .demo-label{font-size:10px}
+.demo-sub,.demo-search,.plugin p,.demo-bottom{font-size:12px}.plugin b{font-size:14px}.demo-chip{font-size:11px}
+.demo-body{grid-template-columns:130px minmax(0,1fr)}.demo-content{min-width:0}
+.discord-window{transform:none}
+.preview-top{font-size:12px;flex-wrap:wrap}
+@media(max-width:1000px){.demo-body{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:720px){h1{font-size:52px;letter-spacing:normal}.hero-copy .intro{font-size:16px}.faq-list summary{font-size:15px}.demo-sidebar{display:none}.demo-body{grid-template-columns:minmax(0,1fr)}.small{font-size:12px}.closing h2{font-size:18px}.closing p{font-size:13px}}
+@media(max-width:370px){h1{font-size:44px}.brand{font-size:18px}.header{gap:10px}.hero-actions{gap:12px}.button{gap:15px}}
