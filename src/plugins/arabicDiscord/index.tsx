@@ -4,110 +4,23 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import "./style.css";
-
-import { definePluginSettings } from "@api/Settings";
 import { Link } from "@components/Link";
 import { Devs } from "@utils/constants";
-import definePlugin, { OptionType } from "@utils/types";
+import definePlugin from "@utils/types";
 import { Forms } from "@webpack/common";
 
-// Import styles and translations
+// Import translations
 import translations from "./ar.json";
 
 // --- Constants & Configuration ---
 
 const attributesToTranslate = ["aria-label", "title", "placeholder", "alt"];
-const fontDefinitions = {
-    ibmPlexSansArabic: {
-        family: '"IBM Plex Sans Arabic", "Noto Sans Arabic", sans-serif',
-        lineHeight: "1.38",
-        url: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
-    },
-    notoSansArabic: {
-        family: '"Noto Sans Arabic", sans-serif',
-        lineHeight: "1.4",
-        url: "https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400..700&display=swap"
-    },
-    alexandria: {
-        family: '"Alexandria", "Noto Sans Arabic", sans-serif',
-        lineHeight: "1.36",
-        url: "https://fonts.googleapis.com/css2?family=Alexandria:wght@400..700&display=swap"
-    },
-    amiri: {
-        family: '"Amiri", "Noto Naskh Arabic", serif',
-        lineHeight: "1.5",
-        url: "https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap"
-    },
-    cairo: {
-        family: '"Cairo", "Noto Sans Arabic", sans-serif',
-        lineHeight: "1.42",
-        url: "https://fonts.googleapis.com/css2?family=Cairo:wght@400..700&display=swap"
-    },
-    tajawal: {
-        family: '"Tajawal", "Noto Sans Arabic", sans-serif',
-        lineHeight: "1.38",
-        url: "https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap"
-    },
-    vazirmatn: {
-        family: '"Vazirmatn", "Noto Sans Arabic", sans-serif',
-        lineHeight: "1.4",
-        url: "https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400..700&display=swap"
-    }
-};
-type FontName = keyof typeof fontDefinitions | "default";
-
-const FONT_LINK_ID = "vc-arabic-ui-font";
-const FONT_CLASS = "vc-arabic-ui-custom-font";
 const TRANSLATION_CACHE_LIMIT = 1_024;
 const skipSelector = [
     "input", "textarea", "select", "option", "code", "pre", "kbd", "samp",
     "script", "style", "time", "[contenteditable='true']", "[role='textbox']",
     "[data-slate-editor='true']", "[id^='message-content-']", "[class*='messageContent']"
 ].join(",");
-
-function applyFont(font: FontName) {
-    const root = document.documentElement;
-    const existingLink = document.getElementById(FONT_LINK_ID) as HTMLLinkElement | null;
-    const definition = font === "default" ? undefined : fontDefinitions[font];
-
-    if (!definition) {
-        existingLink?.remove();
-        root.classList.remove(FONT_CLASS);
-        root.style.removeProperty("--arabic-ui-font");
-        root.style.removeProperty("--arabic-ui-line-height");
-        return;
-    }
-
-    const link = existingLink ?? Object.assign(document.createElement("link"), {
-        id: FONT_LINK_ID,
-        rel: "stylesheet"
-    });
-    if (link.href !== definition.url) link.href = definition.url;
-    if (!link.isConnected) document.head.append(link);
-
-    root.style.setProperty("--arabic-ui-font", definition.family);
-    root.style.setProperty("--arabic-ui-line-height", definition.lineHeight);
-    root.classList.add(FONT_CLASS);
-}
-
-const settings = definePluginSettings({
-    font: {
-        type: OptionType.SELECT,
-        description: "اختر خط الواجهة. يُنصح بخط IBM Plex Sans Arabic لأنه واضح ومتوازن في ديسكورد.",
-        options: [
-            { label: "IBM Plex Sans Arabic — موصى به", value: "ibmPlexSansArabic", default: true },
-            { label: "Noto Sans Arabic — واضح ومحايد", value: "notoSansArabic" },
-            { label: "Alexandria — عصري وهندسي", value: "alexandria" },
-            { label: "Cairo — عريض وواضح", value: "cairo" },
-            { label: "Tajawal — خفيف ومضغوط", value: "tajawal" },
-            { label: "Vazirmatn — متوازن", value: "vazirmatn" },
-            { label: "Amiri — تقليدي للنصوص", value: "amiri" },
-            { label: "خط ديسكورد الافتراضي", value: "default" }
-        ],
-        onChange: value => applyFont(value as FontName)
-    }
-});
 
 const translatedMonths: Record<string, string> = {
     Apr: "أبريل",
@@ -438,10 +351,9 @@ function restoreTranslations() {
 
 export default definePlugin({
     name: "ArabicUI",
-    description: "يترجم واجهة ديسكورد إلى العربية مع إمكانية اختيار الخط العربي.",
+    description: "يترجم واجهة ديسكورد إلى العربية.",
     authors: [Devs.TwoSa],
     enabledByDefault: true,
-    settings,
     settingsAboutComponent: () => (
         <Forms.FormText>
             GitHub: <Link href="https://github.com/2-sa/Vencord">github.com/2-sa/Vencord</Link>
@@ -449,8 +361,6 @@ export default definePlugin({
     ),
 
     start() {
-        applyFont(settings.store.font as FontName);
-
         // 1. Initial Translation
         translateTree(document.body);
 
@@ -492,8 +402,5 @@ export default definePlugin({
         removedRoots.clear();
         restoreTranslations();
         translationCache.clear();
-        document.getElementById(FONT_LINK_ID)?.remove();
-        document.documentElement.classList.remove(FONT_CLASS);
-        document.documentElement.style.removeProperty("--arabic-ui-font");
     }
 });
