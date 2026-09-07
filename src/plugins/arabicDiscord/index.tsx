@@ -227,12 +227,13 @@ function translateTextNode(node: Text) {
     const parent = node.parentElement;
     if (!parent) return;
 
+    const previous = translatedTextNodes.get(node);
+    if (previous?.translated === node.data) return;
     const translated = translate(node.data);
     if (!translated) return;
 
     const value = replaceWithTranslation(node.data, translated);
-    const previous = translatedTextNodes.get(node);
-    if (previous?.translated === node.data || value === node.data) return;
+    if (value === node.data) return;
 
     translatedTextNodes.set(node, { original: node.data, translated: value });
     node.data = value;
@@ -266,6 +267,11 @@ function translateAttributes(element: Element) {
 function translateTree(root: Node) {
     if (root instanceof Element) translateAttributes(root);
     if (isInsideExcludedTree(root)) return;
+    // TreeWalker.nextNode() excludes its root, including standalone added text.
+    if (root instanceof Text) {
+        translateTextNode(root);
+        return;
+    }
 
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
         acceptNode(node) {
@@ -288,6 +294,8 @@ function translateTree(root: Node) {
 }
 
 function forgetTree(root: Node) {
+    // A removal record may describe a move, not a detached subtree.
+    if (root.isConnected) return;
     translatedTextNodes.delete(root as Text);
     translatedAttributes.delete(root as Element);
 
@@ -310,11 +318,13 @@ function isNestedInSet(node: Node, roots: Set<Node>) {
 function flushMutations() {
     scheduledFrame = undefined;
 
-    for (const root of removedRoots) forgetTree(root);
+    for (const root of removedRoots) {
+        if (!isNestedInSet(root, removedRoots)) forgetTree(root);
+    }
     removedRoots.clear();
 
     for (const node of pendingNodes) {
-        if (!node.isConnected) continue;
+        if (!node.isConnected || pendingRoots.has(node) || isNestedInSet(node, pendingRoots)) continue;
         if (node instanceof Element) {
             translateAttributes(node);
             continue;
@@ -330,7 +340,27 @@ function flushMutations() {
 }
 
 function scheduleFlush() {
-    if (scheduledFrame === undefined) scheduledFrame = requestAnimationFrame(flushMutations);
+    if (scheduledFrame === undefined && (pendingNodes.size || pendingRoots.size || removedRoots.size)) {
+        scheduledFrame = requestAnimationFrame(flushMutations);
+    }
+}
+
+function handleMutations(mutations: MutationRecord[]) {
+    for (const mutation of mutations) {
+        if (mutation.type === "attributes" && mutation.target instanceof Element) {
+            const attribute = mutation.attributeName;
+            if (attribute && translatedAttributes.get(mutation.target)?.get(attribute)?.translated === mutation.target.getAttribute(attribute)) continue;
+            pendingNodes.add(mutation.target);
+        } else if (mutation.type === "characterData") {
+            const node = mutation.target as Text;
+            if (translatedTextNodes.get(node)?.translated === node.data || isInsideExcludedTree(node)) continue;
+            pendingNodes.add(node);
+        } else {
+            for (const node of mutation.addedNodes) pendingRoots.add(node);
+            for (const node of mutation.removedNodes) removedRoots.add(node);
+        }
+    }
+    scheduleFlush();
 }
 
 function restoreTranslations() {
@@ -365,23 +395,7 @@ export default definePlugin({
         translateTree(document.body);
 
         // 2. Setup DOM Observer for dynamic content
-        observer = new MutationObserver(mutations => {
-            for (const mutation of mutations) {
-                if (mutation.type === "attributes" && mutation.target instanceof Element) {
-                    pendingNodes.add(mutation.target);
-                    continue;
-                }
-
-                if (mutation.type === "characterData") {
-                    pendingNodes.add(mutation.target);
-                    continue;
-                }
-
-                for (const node of mutation.addedNodes) pendingRoots.add(node);
-                for (const node of mutation.removedNodes) removedRoots.add(node);
-            }
-            scheduleFlush();
-        });
+        observer = new MutationObserver(handleMutations);
 
         observer.observe(document.body, {
             childList: true,
