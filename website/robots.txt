@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vencord-2-sa.vercel.app/sitemap.xml

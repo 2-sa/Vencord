@@ -1,0 +1,22 @@
+# ArabicUI — تعريب Discord عبر Vencord
+
+> ArabicUI is a free, open-source Arabic interface localization plugin bundled with the 2-sa fork of Vencord for desktop Discord.
+
+## نطاق المشروع
+
+- يعرّب النصوص الظاهرة في واجهة Discord وأوصاف إضافات Vencord وإعداداتها.
+- تبقى أسماء الإضافات وأسماء المستخدمين والسيرفرات ورسائل المستخدمين كما هي.
+- التنزيلات المتاحة: Windows وmacOS؛ مثبت الماك يشمل Apple Silicon وIntel.
+- يحتاج Discord مثبتًا على الكمبيوتر. لا توجد تنزيلات Android أو iPhone على هذا الموقع.
+- المشروع مجتمعي مستقل عن Discord ويطوره 2-sa.
+- قد تبقى نصوص غير مترجمة مع تحديثات Discord والإضافات.
+- يمكن تعطيل ArabicUI من إضافات Vencord.
+
+## المصادر
+
+- [الموقع وصفحة التحميل](https://vencord-2-sa.vercel.app/): التعريف والتثبيت والأسئلة الشائعة.
+- [مستودع ArabicUI](https://github.com/2-sa/Vencord): مصدر الكود والتغييرات.
+- [توثيق المشروع](https://github.com/2-sa/Vencord/blob/main/ARABICUI_PROJECT.md): آلية التعريب وحدوده وبناء المثبتات.
+- [الإصدارات](https://github.com/2-sa/Vencord/releases): المصدر المعتمد لمعرفة الإصدار الحالي وملفات التحميل.
+- [الإبلاغ عن مشكلة](https://github.com/2-sa/Vencord/issues): الأخطاء والنصوص غير المترجمة.
+- [Vencord الأصلي](https://github.com/Vendicated/Vencord): المشروع الأساسي.
