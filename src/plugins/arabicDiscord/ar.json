@@ -3034,5 +3034,11 @@
     "Clear Game History": "مسح سجل الألعاب",
     "Personalize your request (Optional)": "تخصيص طلبك (اختياري)",
     "What you write here will also show up in your DM if you become friends.": "ما تكتبه هنا سيظهر أيضًا في الخاص إذا أصبحتما صديقين.",
-    "View All Activity": "عرض كل النشاط"
+    "View All Activity": "عرض كل النشاط",
+    "Suggestions": "الاقتراحات",
+    "Slash Commands": "أوامر السلاش",
+    "Send Message Button": "زر إرسال الرسالة",
+    "Spellcheck": "التدقيق الإملائي",
+    "Languages": "اللغات",
+    "Paste": "لصق"
 }

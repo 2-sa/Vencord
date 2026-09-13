@@ -1,0 +1,7 @@
+/* Keep the sidebar's layout while hiding its contents, including descendants
+   whose own styles explicitly set visibility. This also covers newly added DMs. */
+:is([class^="privateChannels_"], [class*=" privateChannels_"]),
+:is([class^="privateChannels_"], [class*=" privateChannels_"]) * {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}

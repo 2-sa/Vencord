@@ -38,6 +38,8 @@ export type SettingsPluginUiElements = {
 };
 
 export interface Settings {
+    /** Plugins already processed by the one-time ArabicUI default rollout. */
+    arabicUiDefaultsV1Applied: string[];
     autoUpdate: boolean;
     autoUpdateNotification: boolean,
     useQuickCss: boolean;
@@ -94,6 +96,7 @@ export interface Settings {
 }
 
 const DefaultSettings: Settings = {
+    arabicUiDefaultsV1Applied: [],
     autoUpdate: true,
     autoUpdateNotification: true,
     useQuickCss: true,

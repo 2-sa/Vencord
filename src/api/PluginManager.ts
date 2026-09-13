@@ -28,6 +28,7 @@ import { addMessagePopoverButton, removeMessagePopoverButton } from "@api/Messag
 import { Settings, SettingsStore } from "@api/Settings";
 import { disableStyle, enableStyle } from "@api/Styles";
 import { traceFunction } from "@debug/Tracer";
+import { applyArabicUiDefaultsV1 } from "@utils/arabicUiDefaults";
 import { Logger } from "@utils/Logger";
 import { onlyOnce } from "@utils/onlyOnce";
 import { canonicalizeFind, canonicalizeReplacement } from "@utils/patches";
@@ -325,6 +326,8 @@ export const stopPlugin = traceFunction("stopPlugin", function stopPlugin(p: Plu
 }, p => `stopPlugin ${p.name}`);
 
 export const initPluginManager = onlyOnce(function init() {
+    if (!IS_REPORTER) applyArabicUiDefaultsV1(Settings, Plugins);
+
     const pluginsValues = Object.values(Plugins);
     const settings = Settings.plugins;
 

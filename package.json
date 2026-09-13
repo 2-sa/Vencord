@@ -31,8 +31,9 @@
         "lint-styles": "stylelint \"src/**/*.css\" --ignore-pattern src/userplugins",
         "lint:fix": "pnpm lint --fix",
         "testArabicUI": "node --test scripts/arabicui/*.test.mjs && node scripts/arabicui/check-translations.mjs",
-        "test": "pnpm testArabicUI && pnpm buildStandalone && pnpm testTsc && pnpm lint && pnpm lint-styles && pnpm generatePluginJson",
-        "testWeb": "pnpm testArabicUI && pnpm lint && pnpm buildWeb && pnpm testTsc",
+        "testHideDMs": "node --test scripts/hideDms/*.test.mjs",
+        "test": "pnpm testArabicUI && pnpm testHideDMs && pnpm buildStandalone && pnpm testTsc && pnpm lint && pnpm lint-styles && pnpm generatePluginJson",
+        "testWeb": "pnpm testArabicUI && pnpm testHideDMs && pnpm lint && pnpm buildWeb && pnpm testTsc",
         "testTsc": "tsc --noEmit"
     },
     "dependencies": {

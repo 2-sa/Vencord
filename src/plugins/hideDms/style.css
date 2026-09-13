@@ -1,0 +1,30 @@
+.vc-hide-dms-control {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.vc-hide-dms-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: var(--background-secondary, #2b2d31);
+    color: var(--interactive-icon-default, #b5bac1);
+    cursor: pointer;
+}
+
+.vc-hide-dms-button:hover,
+.vc-hide-dms-button[aria-pressed="true"] {
+    background: var(--brand-500, #5865f2);
+    color: #fff;
+}
+
+.vc-hide-dms-button:focus-visible {
+    outline: 2px solid var(--focus-primary, #00a8fc);
+    outline-offset: 2px;
+}
