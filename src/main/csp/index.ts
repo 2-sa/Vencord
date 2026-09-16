@@ -60,13 +60,10 @@ export const CspPolicies: PolicyMap = {
     "archive.org": ConnectSrc,
     "*.archive.org": ConnectSrc,
     "translate-pa.googleapis.com": ConnectSrc, // Google Translate API
-    "*.vencord.dev": ImageSrc, // VenCloud (api.vencord.dev) and Badges (badges.vencord.dev)
+    "api.vencord.dev": ConnectSrc, // VenCloud
     "manti.vendicated.dev": ImageSrc, // ReviewDB API
-    "decor.fieryflames.dev": ConnectSrc, // Decor API
-    "ugc.decor.fieryflames.dev": ImageSrc, // Decor CDN
     "sponsor.ajay.app": ConnectSrc, // Dearrow API
     "dearrow-thumb.ajay.app": ImageSrc, // Dearrow Thumbnail CDN
-    "usrbg.is-hardly.online": ImageSrc, // USRBG API
     "icons.duckduckgo.com": ImageSrc, // DuckDuckGo Favicon API (Reverse Image Search)
 
     // Tenor, used by TenorSearch plugin and some themes

@@ -212,7 +212,7 @@ jobs:
                   short_sha="${GITHUB_SHA::7}"
                   tag="arabicui-$short_sha"
                   title="ArabicUI Vencord $short_sha"
-                  notes="ArabicUI with HideDMs: toggle the DM sidebar using the server-list eye button or Ctrl+Shift+H (Cmd+Shift+H on macOS). Includes a one-time rollout of eight default plugins, new composer menu translations, and upstream Vencord 1.15.5 fixes. HideDMs does not hide the open conversation or notifications. Includes Windows and universal macOS installers."
+                  notes="Removes remote donor badges, Decor, and USRBG and their network requests. Keeps the badge API for other plugins. Includes ArabicUI, HideDMs, and Windows and universal macOS installers."
 
                   if gh release view "$tag" >/dev/null 2>&1; then
                       gh release edit "$tag" --target "$GITHUB_SHA" --title "$title" --notes "$notes" --latest
