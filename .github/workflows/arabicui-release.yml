@@ -212,7 +212,7 @@ jobs:
                   short_sha="${GITHUB_SHA::7}"
                   tag="arabicui-$short_sha"
                   title="ArabicUI Vencord $short_sha"
-                  notes="Removes remote donor badges, Decor, and USRBG and their network requests. Keeps the badge API for other plugins. Includes ArabicUI, HideDMs, and Windows and universal macOS installers."
+                  notes="Removes the donation card from settings. Expands Arabic translations for account menus, login, profile prompts, game activity, last-played times, anniversaries, Nitro trials, and group DM limits. Adds regression tests for translations, default plugins, and removed services. Includes Windows and universal macOS installers."
 
                   if gh release view "$tag" >/dev/null 2>&1; then
                       gh release edit "$tag" --target "$GITHUB_SHA" --title "$title" --notes "$notes" --latest

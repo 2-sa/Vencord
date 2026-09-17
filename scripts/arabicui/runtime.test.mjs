@@ -20,9 +20,6 @@ const result = await build({
             builder.onLoad({ filter: /.*/, namespace: "discord" }, () => ({
                 contents: "export default x=>x; export const Link=null, Devs={TwoSa:{}}, Forms={};"
             }));
-            builder.onLoad({ filter: /ar\.json$/ }, () => ({
-                contents: '{"Open":"فتح","Close":"إغلاق"}', loader: "json"
-            }));
         }
     }]
 });
@@ -85,6 +82,117 @@ test("translates standalone inserted text and restores original whitespace", () 
     f.api.restoreTranslations();
     assert.equal(text.data, " Open ");
 });
+
+test("translates split login instructions without changing the nested layout", () => {
+    const f = fixture();
+    const before = f.root.append(new f.TestText("Scan this with the "));
+    const bold = f.root.append(new f.TestElement());
+    const app = bold.append(new f.TestText("Discord mobile app"));
+    const after = f.root.append(new f.TestText(" to log in instantly."));
+    f.api.translateTree(f.root);
+    assert.equal(before.data, "امسح هذا الرمز باستخدام ");
+    assert.equal(app.data, "تطبيق ديسكورد على الهاتف");
+    assert.equal(after.data, " لتسجيل الدخول فورًا.");
+    assert.equal(app.parentNode, bold);
+});
+
+test("translates clip hint around unchanged keyboard keys", () => {
+    const f = fixture();
+    const before = f.root.append(new f.TestText("Press "));
+    const keys = f.root.append(new f.TestElement());
+    keys.excluded = true;
+    const shortcut = keys.append(new f.TestText("ALT C"));
+    const after = f.root.append(new f.TestText(" to capture a clip while gaming."));
+    f.api.translateTree(f.root);
+    assert.equal(before.data, "اضغط ");
+    assert.equal(shortcut.data, "ALT C");
+    assert.equal(after.data, " لالتقاط مقطع أثناء اللعب.");
+});
+
+test("translates passkey login and profile prompts from the shipped dictionary", () => {
+    const f = fixture();
+    for (const [label, expected] of [
+        ["Or sign in with a passkey", "أو سجّل الدخول بمفتاح مرور"],
+        ["What video game item would you be?", "لو كنت عنصرًا في لعبة فيديو، ماذا ستكون؟"],
+        ["Your vibe in five words", "صف شخصيتك بخمس كلمات"]
+    ]) {
+        const node = f.root.append(new f.TestText(label));
+        f.api.translateTree(node);
+        assert.equal(node.data, expected);
+    }
+});
+test("translates anniversary counts and the Nitro trial offer", () => {
+    const f = fixture();
+    for (const count of [1, 2, 12]) {
+        const node = f.root.append(new f.TestText(`Friend Anniversaries — ${count}`));
+        f.api.translateTree(node);
+        assert.equal(node.data, `ذكريات الصداقة — ${count}`);
+    }
+    const offer = f.root.append(new f.TestText("Send three friends a 2-week Nitro trial and become the MVP of the group chat."));
+    f.api.translateTree(offer);
+    assert.equal(offer.data, "أرسل تجربة نيترو لمدة أسبوعين إلى ثلاثة أصدقاء وكن نجم المحادثة الجماعية.");
+});
+
+test("translates game activity counts around the original bold game name", () => {
+    for (const count of [1, 2, 5]) {
+        const f = fixture();
+        const prefix = `You may also be sharing activity from ${count} ${count === 1 ? "game" : "games"} you play, including`;
+        const before = f.root.append(new f.TestText(prefix + " "));
+        const bold = f.root.append(new f.TestElement());
+        const game = bold.append(new f.TestText("VALORANT"));
+        const after = f.root.append(new f.TestText(". Restrict sharing on a game-by-game basis."));
+        f.api.translateTree(f.root);
+        assert.equal(before.data, `قد تشارك نشاطك من الألعاب التي تلعبها (العدد: ${count})، ومنها `);
+        assert.equal(game.data, "VALORANT");
+        assert.equal(game.parentNode, bold);
+        assert.equal(after.data, ". يمكنك تقييد المشاركة لكل لعبة على حدة.");
+        const whole = f.root.append(new f.TestText(prefix + " VALORANT. Restrict sharing on a game-by-game basis."));
+        f.api.translateTree(whole);
+        assert.equal(whole.data, before.data + game.data + after.data);
+    }
+});
+
+test("translates last-played durations as whole labels and split emphasized text", () => {
+    const f = fixture();
+    for (const [duration, expected] of [
+        ["a day ago", "قبل يوم"], ["2 days ago", "قبل يومين"],
+        ["9 days ago", "قبل 9 أيام"], ["12 days ago", "قبل 12 يومًا"],
+        ["an hour ago", "قبل ساعة"], ["3 hours ago", "قبل 3 ساعات"],
+        ["a minute ago", "قبل دقيقة"], ["2 weeks ago", "قبل أسبوعين"],
+        ["3 months ago", "قبل 3 أشهر"], ["a year ago", "قبل سنة"]
+    ]) {
+        const whole = f.root.append(new f.TestText(`Last played ${duration}`));
+        const label = f.root.append(new f.TestText("Last played "));
+        const bold = f.root.append(new f.TestElement());
+        const time = bold.append(new f.TestText(duration));
+        f.api.translateTree(f.root);
+        assert.equal(whole.data, `آخر لعب ${expected}`);
+        assert.equal(label.data + time.data, whole.data);
+        assert.equal(time.parentNode, bold);
+    }
+});
+
+test("translates activity privacy description while retaining the game name", () => {
+    const f = fixture();
+    const game = f.root.append(new f.TestText("VALORANT"));
+    const description = f.root.append(new f.TestText("Control who sees activity information from games and connected apps I use."));
+    f.api.translateTree(f.root);
+    assert.equal(game.data, "VALORANT");
+    assert.equal(description.data, "تحكّم في من يمكنه رؤية معلومات نشاطك في الألعاب والتطبيقات المرتبطة التي تستخدمها.");
+});
+
+test("translates group DM member limits", () => {
+    const f = fixture();
+    for (const [count, expected] of [
+        [10, "يمكن أن تضم المحادثات الخاصة الجماعية ما يصل إلى 10 أعضاء."],
+        [20, "يمكن أن تضم المحادثات الخاصة الجماعية ما يصل إلى 20 عضوًا."]
+    ]) {
+        const node = f.root.append(new f.TestText(`Group DMs can have up to ${count} members.`));
+        f.api.translateTree(node);
+        assert.equal(node.data, expected);
+    }
+});
+
 test("moving a translated subtree retains restoration records", () => {
     const f = fixture(), text = f.root.append(new f.TestText("Open"));
     f.api.translateTree(f.root);

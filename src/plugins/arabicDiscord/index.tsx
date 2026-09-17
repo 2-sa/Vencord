@@ -50,6 +50,8 @@ function formatArabicCount(value: string, one: string, two: string, few: string,
 }
 
 const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
+    [/^Group DMs can have up to (\d+) members\.$/, match => `يمكن أن تضم المحادثات الخاصة الجماعية ما يصل إلى ${formatArabicCount(match[1], "عضو", "عضوين", "أعضاء", "عضوًا")}.`],
+    [/^(Last played )?(a|an|\d+) (minute|hour|day|week|month|year)s? ago$/, match => `${match[1] ? "آخر لعب " : ""}${translateTimeAgo(match[2], match[3])}`],
     [/^(\d+) Items?$/, match => formatArabicCount(match[1], "عنصر", "عنصران", "عناصر", "عنصرًا")],
     [/^(.+) is not accepting friend requests\. They[’']ll have to add you to become friends\.$/, match => `لا يقبل حساب ${match[1]} طلبات الصداقة. يجب على صاحبه إضافتك لتصبحا صديقين.`],
     [/^Success! Your friend request to (.+) was sent\.$/, match => `تم إرسال طلب صداقتك إلى ${match[1]} بنجاح.`],
@@ -69,7 +71,9 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^(\d+)\s+connections?$/, match => formatArabicCount(match[1], "حساب مرتبط", "حسابان مرتبطان", "حسابات مرتبطة", "حسابًا مرتبطًا")],
     [/^(\d+)\s+webhooks?$/i, match => formatArabicCount(match[1], "ويب هوك", "ويب هوك", "ويب هوك", "ويب هوك")],
     [/^Permissions not synced with category: (.+)$/, match => `الصلاحيات غير متزامنة مع الفئة: ${match[1]}`],
-    [/^You may be sharing activity from (\d+) games you play, including (.+)\. Restrict sharing on a game-by-game basis\.$/, match => `قد تتم مشاركة نشاطك من ${formatArabicCount(match[1], "لعبة واحدة", "لعبتين", "ألعاب", "لعبة")} تلعبها، ومنها ${match[2]}. يمكنك تقييد المشاركة لكل لعبة على حدة.`],
+    [/^You may (?:also )?be sharing activity from (\d+) games? you play, including (.+)\. Restrict sharing on a game-by-game basis\.$/, match => `قد تشارك نشاطك من الألعاب التي تلعبها (العدد: ${match[1]})، ومنها ${match[2]}. يمكنك تقييد المشاركة لكل لعبة على حدة.`],
+    [/^You may (?:also )?be sharing activity from (\d+) games? you play, including$/, match => `قد تشارك نشاطك من الألعاب التي تلعبها (العدد: ${match[1]})، ومنها`],
+    [/^Friend Anniversaries\s*[—–-]\s*(\d+)$/, match => `ذكريات الصداقة — ${match[1]}`],
     [/^(\d+)\s+Online$/, match => formatArabicCount(match[1], "متصل", "متصلان", "متصلون", "متصلًا")],
     [/^(\d+)\s+Members$/, match => formatArabicCount(match[1], "عضو", "عضوان", "أعضاء", "عضوًا")],
     [/^(\d+)\s+accounts$/, match => formatArabicCount(match[1], "حساب", "حسابان", "حسابات", "حسابًا")],
@@ -164,6 +168,20 @@ function translateCallDuration(value: string) {
         return formatArabicCount(duration[1], "دقيقة", "دقيقتان", "دقائق", "دقيقة");
     }
     return formatArabicCount(duration[1], "ساعة", "ساعتان", "ساعات", "ساعة");
+}
+
+function translateTimeAgo(amount: string, unit: string) {
+    const forms: Record<string, [string, string, string, string]> = {
+        minute: ["دقيقة", "دقيقتين", "دقائق", "دقيقة"],
+        hour: ["ساعة", "ساعتين", "ساعات", "ساعة"],
+        day: ["يوم", "يومين", "أيام", "يومًا"],
+        week: ["أسبوع", "أسبوعين", "أسابيع", "أسبوعًا"],
+        month: ["شهر", "شهرين", "أشهر", "شهرًا"],
+        year: ["سنة", "سنتين", "سنوات", "سنة"]
+    };
+    const count = amount === "a" || amount === "an" ? 1 : Number(amount);
+    const [one, two, few, many] = forms[unit];
+    return `قبل ${count === 1 ? one : count === 2 ? two : formatArabicCount(String(count), one, two, few, many)}`;
 }
 
 function normalize(value: string) {

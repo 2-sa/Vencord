@@ -32,8 +32,9 @@
         "lint:fix": "pnpm lint --fix",
         "testArabicUI": "node --test scripts/arabicui/*.test.mjs && node scripts/arabicui/check-translations.mjs",
         "testHideDMs": "node --test scripts/hideDms/*.test.mjs",
-        "test": "pnpm testArabicUI && pnpm testHideDMs && pnpm buildStandalone && pnpm testTsc && pnpm lint && pnpm lint-styles && pnpm generatePluginJson",
-        "testWeb": "pnpm testArabicUI && pnpm testHideDMs && pnpm lint && pnpm buildWeb && pnpm testTsc",
+        "testForkPolicy": "node --test scripts/forkPolicy/*.test.mjs",
+        "test": "pnpm testArabicUI && pnpm testHideDMs && pnpm testForkPolicy && pnpm buildStandalone && pnpm testTsc && pnpm lint && pnpm lint-styles && pnpm generatePluginJson",
+        "testWeb": "pnpm testArabicUI && pnpm testHideDMs && pnpm testForkPolicy && pnpm lint && pnpm buildWeb && pnpm testTsc",
         "testTsc": "tsc --noEmit"
     },
     "dependencies": {

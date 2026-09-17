@@ -16,6 +16,13 @@ const { applyArabicUiDefaultsV1, ARABIC_UI_DEFAULTS_V1, SettingsStore } = await 
 );
 const desktop = Object.fromEntries(ARABIC_UI_DEFAULTS_V1.map(name => [name, {}]));
 
+test("the agreed one-time rollout keeps its exact plugin list", () => {
+    assert.deepEqual([...ARABIC_UI_DEFAULTS_V1], [
+        "YoutubeAdblock", "BetterSettings", "FixImagesQuality", "ValidReply",
+        "CharacterCounter", "PermissionsViewer", "ReviewDB", "HideDMs"
+    ]);
+});
+
 test("rollout enables the agreed plugins and preserves all other settings", () => {
     const state = {
         plugins: Object.fromEntries(ARABIC_UI_DEFAULTS_V1.map(name => [name, { enabled: false, isFavorite: true }])),
