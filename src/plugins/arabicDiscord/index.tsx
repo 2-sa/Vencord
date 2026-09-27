@@ -131,7 +131,8 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^'s Reviews$/, () => " — التقييمات"],
     [/^This is the beginning of your direct message history with (.+)$/, match => `هذه هي بداية سجل رسائلك المباشرة مع ${match[1]}`],
     [/^We[’']ll need to verify your old email address,\s*(.+?),\s*in order to change it\.$/, match => `سنحتاج إلى تأكيد عنوان بريدك الإلكتروني القديم، ${match[1]}، حتى تتمكن من تغييره.`],
-    [/^Your current phone number is:\s*(.+)$/, match => `رقم هاتفك الحالي هو: ${match[1]}`]
+    [/^Your current phone number is:\s*(.+)$/, match => `رقم هاتفك الحالي هو: ${match[1]}`],
+    [/^Looks like you're in another voice channel\. Are you sure you want to switch to (.+)\?$/, match => `يبدو أنك متصل بقناة صوتية أخرى. هل تريد الانتقال إلى ${match[1]}؟`]
 ];
 
 // --- State ---
