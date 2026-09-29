@@ -6,10 +6,31 @@ body,
     text-align: right;
 }
 
-/* Discord positions the selected server indicator with a physical left offset. */
+/* The guild scroller assumes LTR coordinates; RTL shifts its server icons outside the rail. */
+#app-mount [class*="guilds_"] {
+    direction: ltr;
+}
+
+/* Keep the active server marker on the outside edge of the mirrored rail. */
 #app-mount [class*="guilds_"] [class*="pill_"] {
     right: 0;
     left: auto;
+}
+
+#app-mount [class*="guilds_"] [class*="pill_"] [class*="item_"] {
+    right: 0;
+    left: auto;
+}
+
+/* Discord's friend rows retain their original LTR flex direction. */
+#app-mount [class*="peopleListItem_"] {
+    direction: rtl;
+}
+
+/* Vencord's physical margin pushes switches into the RTL label area. */
+#app-mount .vc-form-switch > :last-child {
+    margin-right: auto;
+    margin-left: 0;
 }
 
 /* Keep editable fields aligned with the rest of the interface. */
