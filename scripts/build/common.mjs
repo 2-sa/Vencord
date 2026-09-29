@@ -227,15 +227,18 @@ export const gitRemotePlugin = {
         }));
         build.onLoad({ filter, namespace: "git-remote" }, async () => {
             let remote = process.env.VENCORD_REMOTE;
+            if (!remote && process.env.VERCEL_GIT_PROVIDER === "github" && process.env.VERCEL_GIT_REPO_OWNER && process.env.VERCEL_GIT_REPO_SLUG) {
+                remote = `${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}`;
+            }
             if (!remote) {
-                const res = await promisify(exec)("git remote get-url origin", { encoding: "utf-8" });
-                remote = res.stdout.trim()
+                const res = await promisify(exec)("git remote get-url origin", { encoding: "utf-8" }).catch(() => null);
+                remote = res?.stdout.trim()
                     .replace("https://github.com/", "")
                     .replace("git@github.com:", "")
-                    .replace(/.git$/, "");
+                    .replace(/\.git$/, "") ?? "";
             }
 
-            return { contents: `export default "${remote}"` };
+            return { contents: `export default ${JSON.stringify(remote)}` };
         });
     }
 };
