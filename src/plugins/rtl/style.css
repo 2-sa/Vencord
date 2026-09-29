@@ -1,0 +1,37 @@
+/* Keep every rule inside the chat pane; channel lists and Discord navigation stay untouched. */
+main[class*="chatContent_"] [class*="messageListItem_"] [class*="message_"] {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Cozy messages reserve space for the avatar on the right instead of the left. */
+main[class*="chatContent_"] [class*="messageListItem_"] [class*="cozy_"] {
+    padding-right: 72px;
+    padding-left: 16px;
+}
+
+main[class*="chatContent_"] [class*="messageListItem_"] [class*="cozy_"] > [class*="contents_"] > [class*="avatar_"] {
+    right: 16px;
+    left: auto;
+}
+
+main[class*="chatContent_"] [id^="message-content-"] {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Code keeps its left-to-right reading order. */
+main[class*="chatContent_"] [id^="message-content-"] :is(pre, code),
+main[class*="chatContent_"] [class*="codeContainer_"] {
+    direction: ltr;
+    text-align: left;
+}
+
+main[class*="chatContent_"] [class*="channelTextArea_"] {
+    direction: rtl;
+}
+
+main[class*="chatContent_"] [class*="channelTextArea_"] :is([data-slate-editor="true"], [class*="placeholder_"]) {
+    direction: rtl;
+    text-align: right;
+}
