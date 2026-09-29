@@ -1,4 +1,36 @@
-/* Keep every rule inside the chat pane; channel lists and Discord navigation stay untouched. */
+/* Mirror the application layout, including servers, channels, chat, members and popouts. */
+html,
+body,
+#app-mount {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Discord positions the selected server indicator with a physical left offset. */
+#app-mount [class*="guilds_"] [class*="pill_"] {
+    right: 0;
+    left: auto;
+}
+
+/* Keep editable fields aligned with the rest of the interface. */
+#app-mount :is(input, textarea, [role="textbox"], [contenteditable="true"]) {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Addresses, code and dates have their own left-to-right reading order. */
+#app-mount :is(input[type="email"], input[type="url"], pre, code, kbd, samp),
+#app-mount [class*="codeContainer_"] {
+    direction: ltr;
+    text-align: left;
+}
+
+#app-mount :is(time, [class*="timestamp_"]) {
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+/* Cozy chat rows still need their physical avatar spacing mirrored. */
 main[class*="chatContent_"] [class*="messageListItem_"] [class*="message_"] {
     direction: rtl;
     text-align: right;
@@ -18,13 +50,6 @@ main[class*="chatContent_"] [class*="messageListItem_"] [class*="cozy_"] > [clas
 main[class*="chatContent_"] [id^="message-content-"] {
     direction: rtl;
     text-align: right;
-}
-
-/* Code keeps its left-to-right reading order. */
-main[class*="chatContent_"] [id^="message-content-"] :is(pre, code),
-main[class*="chatContent_"] [class*="codeContainer_"] {
-    direction: ltr;
-    text-align: left;
 }
 
 main[class*="chatContent_"] [class*="channelTextArea_"] {
