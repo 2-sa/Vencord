@@ -1,5 +1,30 @@
 const releaseBase = "https://github.com/2-sa/Vencord/releases";
 const statusElement = document.querySelector("#release-status");
+const themeToggle = document.querySelector("#theme-toggle");
+const themeColor = document.querySelector('meta[name="theme-color"]');
+const systemTheme = matchMedia("(prefers-color-scheme: dark)");
+
+function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    themeToggle.setAttribute("aria-pressed", String(theme === "dark"));
+    themeToggle.title = theme === "dark" ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن";
+    themeColor.content = theme === "dark" ? "#15131f" : "#f7f7fc";
+}
+
+applyTheme(document.documentElement.dataset.theme);
+
+themeToggle.addEventListener("click", () => {
+    const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    applyTheme(theme);
+    try { localStorage.setItem("arabicui-theme", theme); } catch { /* The current page still switches theme. */ }
+});
+
+systemTheme.addEventListener("change", event => {
+    try {
+        if (localStorage.getItem("arabicui-theme")) return;
+    } catch { /* Follow the system theme when storage is unavailable. */ }
+    applyTheme(event.matches ? "dark" : "light");
+});
 
 document.querySelectorAll("[data-language]").forEach(button => {
     button.addEventListener("click", () => {

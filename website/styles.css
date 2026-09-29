@@ -20,3 +20,27 @@ h1{font-size:clamp(48px,5vw,70px);font-weight:700;line-height:1.65}
 @media(max-width:1000px){.demo-body{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:720px){h1{font-size:52px;letter-spacing:normal}.hero-copy .intro{font-size:16px}.faq-list summary{font-size:15px}.demo-sidebar{display:none}.demo-body{grid-template-columns:minmax(0,1fr)}.small{font-size:12px}.closing h2{font-size:18px}.closing p{font-size:13px}}
 @media(max-width:370px){h1{font-size:44px}.brand{font-size:18px}.header{gap:10px}.hero-actions{gap:12px}.button{gap:15px}}
+
+/* Site appearance control. The Discord preview keeps its own colors. */
+.header-actions{display:flex;align-items:center;gap:12px}
+.theme-toggle{width:44px;height:44px;display:grid;place-items:center;flex:none;padding:0;border:1px solid var(--line);border-radius:11px;background:var(--white);color:var(--ink);transition:background-color .18s,border-color .18s,transform .18s}
+.theme-toggle:hover{border-color:var(--purple);transform:translateY(-2px)}
+.theme-toggle svg{width:21px;height:21px}
+.theme-sun,.download-label-short{display:none}
+:root[data-theme="dark"]{color-scheme:dark;--paper:#15131f;--ink:#f5f2ff;--muted:#bdb7ce;--purple:#b9a6ff;--lilac:#211b35;--line:#403951;--white:#292438}
+:root[data-theme="dark"] .theme-moon{display:none}
+:root[data-theme="dark"] .theme-sun{display:block}
+:root[data-theme="dark"] .mark{background:#725bdf;color:#fff}
+:root[data-theme="dark"] .button.dark{background:#3b3156;color:#fff}
+:root[data-theme="dark"] .button.purple{background:#7058da;color:#fff}
+:root[data-theme="dark"] .language-switch,:root[data-theme="dark"] .platform-switch{background:#2b263a}
+:root[data-theme="dark"] .language-switch button[aria-pressed=true],:root[data-theme="dark"] .platform-switch button[aria-pressed=true]{background:#49405f;color:#fff;box-shadow:none}
+:root[data-theme="dark"] .download-card{background:var(--white);border-color:#4a425e}
+:root[data-theme="dark"] .download-card:hover{box-shadow:0 10px 30px #0005}
+:root[data-theme="dark"] .install-tip{background:#292438}
+:root[data-theme="dark"] .closing{background:#2a233e;border:1px solid #4a405e;color:#fff}
+:root[data-theme="dark"] .closing .button{background:#f5f2ff;color:#25233e}
+:root[data-theme="dark"] .closing p{color:#d2cce2}
+:root[data-theme="dark"] .skip{background:var(--white);color:var(--ink)}
+@media(max-width:720px){.header-actions{gap:8px}.theme-toggle{width:40px;height:40px}.download-label-full{display:none}.download-label-short{display:inline}.header-actions .button.small{gap:8px}}
+@media(max-width:370px){.header-actions{gap:6px}.theme-toggle{width:36px;height:36px}.header-actions .button.small{padding-inline:9px}}
