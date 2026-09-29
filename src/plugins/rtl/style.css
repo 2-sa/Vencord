@@ -33,6 +33,25 @@ body,
     margin-left: 0;
 }
 
+/* Profile identity and the account list use Latin names and LTR icon spacing. */
+#app-mount :is([class*="accountProfilePopout"], [class*="accountSwitcher"], [class*="switchAccounts"]) {
+    direction: ltr;
+    text-align: left;
+}
+
+#app-mount :is([class*="username_"], [class*="displayName_"], [class*="nickname_"]) {
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: isolate;
+}
+
+/* Arabic account actions read from the right even inside an LTR identity card. */
+#app-mount :is([class*="accountProfilePopout"], [class*="accountSwitcher"], [class*="switchAccounts"])
+    :is(button, [role="button"], [role="menuitem"]) {
+    direction: rtl;
+    text-align: right;
+}
+
 /* Keep editable fields aligned with the rest of the interface. */
 #app-mount :is(input, textarea, [role="textbox"], [contenteditable="true"]) {
     direction: rtl;
