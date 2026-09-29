@@ -33,6 +33,27 @@ body,
     margin-left: 0;
 }
 
+/* Discord's settings tab bar keeps its LTR item layout after the sidebar moves right. */
+#app-mount [class*="standardSidebarView_"] [class*="side_"] {
+    direction: rtl;
+    text-align: right;
+}
+
+#app-mount [class*="standardSidebarView_"] [class*="side_"]
+    :is([class*="item_"], [role="tab"]) {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    direction: rtl;
+    text-align: right;
+}
+
+#app-mount [class*="standardSidebarView_"] [class*="side_"] [class*="header_"] {
+    direction: rtl;
+    text-align: right;
+}
+
 /* Profile identity and the account list use Latin names and LTR icon spacing. */
 #app-mount :is([class*="accountProfilePopout"], [class*="accountSwitcher"], [class*="switchAccounts"]) {
     direction: ltr;
