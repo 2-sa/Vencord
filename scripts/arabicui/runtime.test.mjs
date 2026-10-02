@@ -130,7 +130,7 @@ test("translates anniversary counts and the Nitro trial offer", () => {
     }
     const offer = f.root.append(new f.TestText("Send three friends a 2-week Nitro trial and become the MVP of the group chat."));
     f.api.translateTree(offer);
-    assert.equal(offer.data, "أرسل تجربة نيترو لمدة أسبوعين إلى ثلاثة أصدقاء وكن نجم المحادثة الجماعية.");
+    assert.equal(offer.data, "أرسل إلى ثلاثة أصدقاء تجربة نيترو مدتها أسبوعان، وتألّق في المحادثة الجماعية.");
 });
 
 test("translates game activity counts around the original bold game name", () => {
@@ -190,6 +190,51 @@ test("translates group DM member limits", () => {
         const node = f.root.append(new f.TestText(`Group DMs can have up to ${count} members.`));
         f.api.translateTree(node);
         assert.equal(node.data, expected);
+    }
+});
+
+test("Arabic counters use all six plural categories without prefixing the dual", () => {
+    const f = fixture();
+    for (const [count, expected] of [
+        [0, "0 عنصر"], [1, "عنصر واحد"], [2, "عنصران"],
+        [3, "3 عناصر"], [10, "10 عناصر"], [11, "11 عنصرًا"], [99, "99 عنصرًا"],
+        [100, "100 عنصر"], [101, "101 عنصر"], [102, "102 عنصر"],
+        [103, "103 عناصر"], [110, "110 عناصر"], [111, "111 عنصرًا"],
+        [200, "200 عنصر"], [1000, "1000 عنصر"]
+    ]) {
+        const text = f.root.append(new f.TestText(`${count} Items`));
+        f.api.translateTree(text);
+        assert.equal(text.data, expected);
+    }
+});
+
+test("duals follow the grammatical case in invitations, limits and durations", () => {
+    const f = fixture();
+    for (const [label, expected] of [
+        ["Group DMs can have up to 2 members.", "يمكن أن تضم المحادثات الخاصة الجماعية ما يصل إلى عضوين."],
+        ["You can add 2 more people.", "يمكنك إضافة شخصين آخرين."],
+        ["Your invite link expires in 2 hours.", "تنتهي صلاحية رابط دعوتك بعد ساعتين."],
+        ["In 2 Days", "بعد يومين"],
+        ["Sam started a call that lasted 2 minutes.", "Sam بدأ مكالمة استمرت دقيقتين."],
+        ["Sam gave 2 boosts.", "Sam منح بوستين."],
+        ["Sam 2 boosts expired.", "انتهت صلاحية بوستين لدى Sam."]
+    ]) {
+        const text = f.root.append(new f.TestText(label));
+        f.api.translateTree(text);
+        assert.equal(text.data, expected);
+    }
+});
+
+test("boost notices support singular and plural English subjects", () => {
+    const f = fixture();
+    for (const [label, expected] of [
+        ["1 extremely cool person has boosted this server", "دعم شخص رائع هذا السيرفر."],
+        ["2 extremely cool people have boosted this server.", "دعم شخصان رائعان هذا السيرفر."],
+        ["3 extremely cool people have boosted this server.", "دعم 3 أشخاص رائعين هذا السيرفر."]
+    ]) {
+        const text = f.root.append(new f.TestText(label));
+        f.api.translateTree(text);
+        assert.equal(text.data, expected);
     }
 });
 

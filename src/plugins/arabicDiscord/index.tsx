@@ -37,57 +37,64 @@ const translatedMonths: Record<string, string> = {
     Sep: "سبتمبر"
 };
 
+const arabicPluralRules = new Intl.PluralRules("ar");
+
+// The caller supplies the dual in its grammatical case (e.g. عضوين after إلى).
+function formatArabicPlural(value: string, forms: Record<Intl.LDMLPluralRule, string>) {
+    return forms[arabicPluralRules.select(Number(value))].replace("{n}", value);
+}
+
 function formatArabicCount(value: string, one: string, two: string, few: string, many: string) {
-    const count = Number(value);
-    const lastTwoDigits = count % 100;
-    let form = many;
-
-    if (count === 1) form = one;
-    else if (count === 2) form = two;
-    else if (lastTwoDigits >= 3 && lastTwoDigits <= 10) form = few;
-
-    return `${value} ${form}`;
+    const singular = one.replace(/ واحد(?:ة)?(?=\s|$)/, "");
+    return formatArabicPlural(value, {
+        zero: `{n} ${singular}`,
+        one,
+        two,
+        few: `{n} ${few}`,
+        many: `{n} ${many}`,
+        other: `{n} ${many.replace(/ًا/g, "").replace(/ً/g, "")}`
+    });
 }
 
 const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
-    [/^Group DMs can have up to (\d+) members\.$/, match => `يمكن أن تضم المحادثات الخاصة الجماعية ما يصل إلى ${formatArabicCount(match[1], "عضو", "عضوين", "أعضاء", "عضوًا")}.`],
+    [/^Group DMs can have up to (\d+) members\.$/, match => `يمكن أن تضم المحادثات الخاصة الجماعية ما يصل إلى ${formatArabicCount(match[1], "عضو واحد", "عضوين", "أعضاء", "عضوًا")}.`],
     [/^(Last played )?(a|an|\d+) (minute|hour|day|week|month|year)s? ago$/, match => `${match[1] ? "آخر لعب " : ""}${translateTimeAgo(match[2], match[3])}`],
-    [/^(\d+) Items?$/, match => formatArabicCount(match[1], "عنصر", "عنصران", "عناصر", "عنصرًا")],
+    [/^(\d+) Items?$/, match => formatArabicCount(match[1], "عنصر واحد", "عنصران", "عناصر", "عنصرًا")],
     [/^(.+) is not accepting friend requests\. They[’']ll have to add you to become friends\.$/, match => `لا يقبل حساب ${match[1]} طلبات الصداقة. يجب على صاحبه إضافتك لتصبحا صديقين.`],
-    [/^Success! Your friend request to (.+) was sent\.$/, match => `تم إرسال طلب صداقتك إلى ${match[1]} بنجاح.`],
+    [/^Success! Your friend request to (.+) was sent\.$/, match => `أُرسل طلب صداقتك إلى ${match[1]}.`],
     [/^(.+) doesn't have any activity to share here$/, match => `لا يوجد لدى ${match[1]} أي نشاط لمشاركته هنا`],
     [/^You can add (\d+) more people\.$/, match => `يمكنك إضافة ${formatArabicCount(match[1], "شخص آخر", "شخصين آخرين", "أشخاص آخرين", "شخصًا آخر")}.`],
-    [/^Your invite link expires in (\d+) hours?\.$/, match => `تنتهي صلاحية رابط دعوتك بعد ${formatArabicCount(match[1], "ساعة", "ساعتين", "ساعات", "ساعة")}.`],
-    [/^Your invite link expires in (\d+) days?\.$/, match => `تنتهي صلاحية رابط دعوتك بعد ${formatArabicCount(match[1], "يوم", "يومين", "أيام", "يومًا")}.`],
+    [/^Your invite link expires in (\d+) hours?\.$/, match => `تنتهي صلاحية رابط دعوتك بعد ${formatArabicCount(match[1], "ساعة واحدة", "ساعتين", "ساعات", "ساعة")}.`],
+    [/^Your invite link expires in (\d+) days?\.$/, match => `تنتهي صلاحية رابط دعوتك بعد ${formatArabicCount(match[1], "يوم واحد", "يومين", "أيام", "يومًا")}.`],
     [/^Status for (.+)$/, match => `حالة قناة ${match[1]}`],
     [/^Clear tomorrow at (.+)$/, match => `المسح غدًا الساعة ${match[1]}`],
-    [/^(\d+) hours? \(tomorrow at (.+)\)$/, match => `${formatArabicCount(match[1], "ساعة", "ساعتان", "ساعات", "ساعة")} (غدًا الساعة ${match[2]})`],
-    [/^(\d+) hours? \((.+)\)$/, match => `${formatArabicCount(match[1], "ساعة", "ساعتان", "ساعات", "ساعة")} (${match[2]})`],
-    [/^(\d+) minutes? \((.+)\)$/, match => `${formatArabicCount(match[1], "دقيقة", "دقيقتان", "دقائق", "دقيقة")} (${match[2]})`],
-    [/^(\d+) minutes?$/, match => formatArabicCount(match[1], "دقيقة", "دقيقتان", "دقائق", "دقيقة")],
-    [/^(\d+) hours?$/, match => formatArabicCount(match[1], "ساعة", "ساعتان", "ساعات", "ساعة")],
-    [/^(\d+) days?$/, match => formatArabicCount(match[1], "يوم", "يومان", "أيام", "يومًا")],
+    [/^(\d+) hours? \(tomorrow at (.+)\)$/, match => `${formatArabicCount(match[1], "ساعة واحدة", "ساعتان", "ساعات", "ساعة")} (غدًا الساعة ${match[2]})`],
+    [/^(\d+) hours? \((.+)\)$/, match => `${formatArabicCount(match[1], "ساعة واحدة", "ساعتان", "ساعات", "ساعة")} (${match[2]})`],
+    [/^(\d+) minutes? \((.+)\)$/, match => `${formatArabicCount(match[1], "دقيقة واحدة", "دقيقتان", "دقائق", "دقيقة")} (${match[2]})`],
+    [/^(\d+) minutes?$/, match => formatArabicCount(match[1], "دقيقة واحدة", "دقيقتان", "دقائق", "دقيقة")],
+    [/^(\d+) hours?$/, match => formatArabicCount(match[1], "ساعة واحدة", "ساعتان", "ساعات", "ساعة")],
+    [/^(\d+) days?$/, match => formatArabicCount(match[1], "يوم واحد", "يومان", "أيام", "يومًا")],
     [/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2}), (\d{4})$/, match => `${match[2]} ${translatedMonths[match[1]]} ${match[3]}`],
-    [/^(\d+)\s+connections?$/, match => formatArabicCount(match[1], "حساب مرتبط", "حسابان مرتبطان", "حسابات مرتبطة", "حسابًا مرتبطًا")],
-    [/^(\d+)\s+webhooks?$/i, match => formatArabicCount(match[1], "ويب هوك", "ويب هوك", "ويب هوك", "ويب هوك")],
-    [/^(\d+) of (\d+) slots available$/i, match => `متبقي ${match[1]} من أصل ${match[2]} خانة`],
-    [/^(\d+) Slots? of (\d+) available$/i, match => `${match[1]} من أصل ${match[2]} خانة متاحة`],
+    [/^(\d+)\s+connections?$/, match => formatArabicCount(match[1], "حساب مرتبط واحد", "حسابان مرتبطان", "حسابات مرتبطة", "حسابًا مرتبطًا")],
+    [/^(\d+)\s+webhooks?$/i, match => formatArabicCount(match[1], "ويب هوك واحد", "ويب هوك اثنان", "ويب هوك", "ويب هوك")],
+    [/^(\d+) of (\d+) slots available$/i, match => `الخانات المتاحة: ${match[1]} من ${match[2]}`],
+    [/^(\d+) Slots? of (\d+) available$/i, match => `الخانات المتاحة: ${match[1]} من ${match[2]}`],
     [/^Permissions not synced with category: (.+)$/, match => `الصلاحيات غير متزامنة مع الفئة: ${match[1]}`],
     [/^You may (?:also )?be sharing activity from (\d+) games? you play, including (.+)\. Restrict sharing on a game-by-game basis\.$/, match => `قد تشارك نشاطك من الألعاب التي تلعبها (العدد: ${match[1]})، ومنها ${match[2]}. يمكنك تقييد المشاركة لكل لعبة على حدة.`],
     [/^You may (?:also )?be sharing activity from (\d+) games? you play, including$/, match => `قد تشارك نشاطك من الألعاب التي تلعبها (العدد: ${match[1]})، ومنها`],
     [/^Friend Anniversaries\s*[—–-]\s*(\d+)$/, match => `ذكريات الصداقة — ${match[1]}`],
-    [/^(\d+)\s+Online$/, match => formatArabicCount(match[1], "متصل", "متصلان", "متصلون", "متصلًا")],
-    [/^(\d+)\s+Members$/, match => formatArabicCount(match[1], "عضو", "عضوان", "أعضاء", "عضوًا")],
-    [/^(\d+)\s+accounts$/, match => formatArabicCount(match[1], "حساب", "حسابان", "حسابات", "حسابًا")],
-    [/^(\d+)\s+Mutual Friends$/, match => formatArabicCount(match[1], "صديق مشترك", "صديقان مشتركان", "أصدقاء مشتركون", "صديقًا مشتركًا")],
-    [/^(\d+)\s+Mutual Servers?$/, match => formatArabicCount(match[1], "سيرفر مشترك", "سيرفران مشتركان", "سيرفرات مشتركة", "سيرفرًا مشتركًا")],
+    [/^(\d+)\s+Online$/, match => formatArabicCount(match[1], "متصل واحد", "متصلان", "متصلين", "متصلًا")],
+    [/^(\d+)\s+Members$/, match => formatArabicCount(match[1], "عضو واحد", "عضوان", "أعضاء", "عضوًا")],
+    [/^(\d+)\s+accounts$/, match => formatArabicCount(match[1], "حساب واحد", "حسابان", "حسابات", "حسابًا")],
+    [/^(\d+)\s+Mutual Friends$/, match => formatArabicCount(match[1], "صديق مشترك واحد", "صديقان مشتركان", "أصدقاء مشتركون", "صديقًا مشتركًا")],
+    [/^(\d+)\s+Mutual Servers?$/, match => formatArabicCount(match[1], "سيرفر مشترك واحد", "سيرفران مشتركان", "سيرفرات مشتركة", "سيرفرًا مشتركًا")],
     [/^Offline\s+[—-]\s+(\d+)$/, match => `غير متصل — ${match[1]}`],
     [/^Activity\s+[—-]\s+(\d+)$/, match => `النشاط — ${match[1]}`],
     [/^Online\s+[—-]\s+(\d+)$/, match => `متصلون — ${match[1]}`],
     [/^All friends\s+[—-]\s+(\d+)$/, match => `كل الأصدقاء — ${match[1]}`],
     [/^Sent\s+[—-]\s+(\d+)$/, match => `المرسلة — ${match[1]}`],
     [/^Screen\s+(\d+)$/, match => `الشاشة ${match[1]}`],
-    [/^Smoother video\s*[·•]\s*(.+)$/, match => `فيديو أكثر سلاسة · ${match[1]}`],
+    [/^Smoother video\s*[·•]\s*(.+)$/, match => `فيديو أسلس · ${match[1]}`],
     [/^Clearer text\s*[·•]\s*(.+)$/, match => `نص أوضح · ${match[1].replace("Source", "المصدر")}`],
     [/^Well, it looks like Discord is not detecting any input from your mic\. Let[’']s fix that! Error: (\d+)$/, match => `يبدو أن ديسكورد لا يلتقط أي صوت من الميكروفون. لنصلح ذلك! خطأ: ${match[1]}`],
     [/^(.+)\s+Error:\s*(\d+)$/, match => `${translations[match[1]] ?? match[1]} رمز الخطأ: ${match[2]}`],
@@ -107,7 +114,7 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^(.+)\s+started a call that lasted (.+)\.$/, match => `${match[1]} بدأ مكالمة استمرت ${translateCallDuration(match[2])}.`],
     [/^This is the beginning of your direct message history with (.+)\.$/, match => `هذه بداية سجل رسائلك الخاصة مع ${match[1]}.`],
     [/^Ignore (.+)\?$/, match => `تجاهل ${match[1]}؟`],
-    [/^You have unsaved changes to the "(.+)" AutoMod rule\. Are you sure you want to stop editing without saving\?$/, match => `لديك تغييرات غير محفوظة في قاعدة أوتومود "${translations[match[1]] ?? match[1]}". هل تريد إيقاف التعديل دون حفظ؟`],
+    [/^You have unsaved changes to the "(.+)" AutoMod rule\. Are you sure you want to stop editing without saving\?$/, match => `لديك تغييرات غير محفوظة في قاعدة أوتومود «${translations[match[1]] ?? match[1]}». هل تريد إيقاف التعديل دون حفظ؟`],
     [/^Add up to (\d+) custom emoji that anyone can use in this server\. Animated GIF emoji may be used by members with Discord Nitro\.$/, match => `أضف ما يصل إلى ${match[1]} إيموجي مخصص يمكن للجميع استخدامه في هذا السيرفر. ويمكن لمشتركي نيترو استخدام إيموجي GIF المتحرك.`],
     [/^The recommended minimum size is (\d+x\d+) and recommended aspect ratio is ([\d:]+)\.$/, match => `الحد الأدنى الموصى به للحجم هو ${match[1]} ونسبة الأبعاد الموصى بها هي ${match[2]}.`],
     [/^Buy for (.+)$/, match => `شراء بسعر ${match[1]}`],
@@ -115,27 +122,27 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^Plans start at only (.+)\. Cancel anytime$/, match => `تبدأ الخطط من \u200E${match[1]}\u200E فقط. يمكنك الإلغاء في أي وقت`],
     [/^(.+)\/month$/, match => `${match[1]}/شهر`],
     [/^(.+)\/year$/, match => `${match[1]}/سنة`],
-    [/^In (\d+) Days?$/, match => `خلال ${formatArabicCount(match[1], "يوم", "يومين", "أيام", "يومًا")}`],
-    [/^(\d+) Orbs$/, match => formatArabicCount(match[1], "أورب", "أوربان", "أوربز", "أوربًا")],
+    [/^In (\d+) Days?$/, match => `بعد ${formatArabicCount(match[1], "يوم واحد", "يومين", "أيام", "يومًا")}`],
+    [/^(\d+) Orbs$/, match => formatArabicCount(match[1], "أورب واحد", "أوربان", "أوربز", "أوربًا")],
     [/^(.+) elapsed$/, match => `المدة: ${match[1]}`],
     [/^GOOD MORNING,?$/, () => "صباح الخير،"],
     [/^GOOD AFTERNOON,?$/, () => "مساء الخير،"],
     [/^GOOD EVENING,?$/, () => "مساء الخير،"],
-    [/^Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `افتح صندوق الوارد بالضغط على ${match[1]}، وحدد أول رسالة كمقروءة بالضغط على ${match[2]}.`],
-    [/^PROTIP: Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `نصيحة احترافية: افتح صندوق الوارد بالضغط على ${match[1]}، وحدد أول رسالة كمقروءة بالضغط على ${match[2]}.`],
+    [/^Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `افتح صندوق الوارد بالضغط على ${match[1]}، وعلّم أول رسالة مقروءة بالضغط على ${match[2]}.`],
+    [/^PROTIP: Open the Inbox by pressing (.+), and mark your top message as read with (.+)\.$/, match => `نصيحة: افتح صندوق الوارد بالضغط على ${match[1]}، وعلّم أول رسالة مقروءة بالضغط على ${match[2]}.`],
     [/^(.+)'s Reviews$/, match => `تقييمات ${match[1]}`],
-    [/^\((\d+) Reviews\)$/, match => `(${match[1]} تقييم)`],
-    [/^(.+) gave (\d+) boosts?\.?$/, match => `${match[1]} منح ${formatArabicCount(match[2], "بوست", "بوستان", "بوستات", "بوستًا")}.`],
-    [/^(.+) (\d+) boosts? expired\.$/, match => `انتهت صلاحية ${formatArabicCount(match[2], "بوست", "بوستان", "بوستات", "بوستًا")} لدى ${match[1]}.`],
-    [/^(\d+) extremely cool people? (?:has|have) boosted this server\.?$/, match => `دعم ${formatArabicCount(match[1], "شخص رهيب", "شخصان رهيبان", "أشخاص رهيبون", "شخصًا رهيبًا")} هذا السيرفر.`],
+    [/^\((\d+) Reviews\)$/, match => `(${formatArabicCount(match[1], "تقييم واحد", "تقييمان", "تقييمات", "تقييمًا")})`],
+    [/^(.+) gave (\d+) boosts?\.?$/, match => `${match[1]} منح ${formatArabicCount(match[2], "بوست واحد", "بوستين", "بوستات", "بوستًا")}.`],
+    [/^(.+) (\d+) boosts? expired\.$/, match => `انتهت صلاحية ${formatArabicCount(match[2], "بوست واحد", "بوستين", "بوستات", "بوستًا")} لدى ${match[1]}.`],
+    [/^(\d+) extremely cool (?:person|people) (?:has|have) boosted this server\.?$/, match => `دعم ${formatArabicCount(match[1], "شخص رائع", "شخصان رائعان", "أشخاص رائعين", "شخصًا رائعًا")} هذا السيرفر.`],
     [/^(.+) has boosted this server\.$/, match => `دعم ${match[1]} هذا السيرفر.`],
     [/^Invite friends to (.+)$/, match => `دعوة أصدقاء إلى ${match[1]}`],
     [/^Recipients will land in (.+)$/, match => `سيدخل المستلمون إلى ${match[1]}`],
-    [/^Permissions not synced with category:\s*(.+)$/, match => `الأذونات غير متزامنة مع التصنيف: ${match[1]}`],
+    [/^Permissions not synced with category:\s*(.+)$/, match => `الصلاحيات غير متزامنة مع الفئة: ${match[1]}`],
     [/^Review @(.+)$/, match => `تقييم @${match[1]}`],
     [/^'s Reviews$/, () => " — التقييمات"],
-    [/^This is the beginning of your direct message history with (.+)$/, match => `هذه هي بداية سجل رسائلك المباشرة مع ${match[1]}`],
-    [/^We[’']ll need to verify your old email address,\s*(.+?),\s*in order to change it\.$/, match => `سنحتاج إلى تأكيد عنوان بريدك الإلكتروني القديم، ${match[1]}، حتى تتمكن من تغييره.`],
+    [/^This is the beginning of your direct message history with (.+)$/, match => `هذه بداية سجل رسائلك الخاصة مع ${match[1]}`],
+    [/^We[’']ll need to verify your old email address,\s*(.+?),\s*in order to change it\.$/, match => `نحتاج إلى تأكيد عنوان بريدك الإلكتروني القديم، ${match[1]}، لتغييره.`],
     [/^Your current phone number is:\s*(.+)$/, match => `رقم هاتفك الحالي هو: ${match[1]}`],
     [/^Looks like you're in another voice channel\. Are you sure you want to switch to (.+)\?$/, match => `يبدو أنك متصل بقناة صوتية أخرى. هل تريد الانتقال إلى ${match[1]}؟`]
 ];
@@ -168,12 +175,12 @@ function translateCallDuration(value: string) {
     if (!duration) return normalized;
 
     if (duration[2].startsWith("second")) {
-        return formatArabicCount(duration[1], "ثانية", "ثانيتان", "ثوانٍ", "ثانية");
+        return formatArabicCount(duration[1], "ثانية واحدة", "ثانيتين", "ثوانٍ", "ثانية");
     }
     if (duration[2].startsWith("minute")) {
-        return formatArabicCount(duration[1], "دقيقة", "دقيقتان", "دقائق", "دقيقة");
+        return formatArabicCount(duration[1], "دقيقة واحدة", "دقيقتين", "دقائق", "دقيقة");
     }
-    return formatArabicCount(duration[1], "ساعة", "ساعتان", "ساعات", "ساعة");
+    return formatArabicCount(duration[1], "ساعة واحدة", "ساعتين", "ساعات", "ساعة");
 }
 
 function translateTimeAgo(amount: string, unit: string) {
