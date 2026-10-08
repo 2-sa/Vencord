@@ -31,9 +31,10 @@
         "lint-styles": "stylelint \"src/**/*.css\" --ignore-pattern src/userplugins",
         "lint:fix": "pnpm lint --fix",
         "testArabicUI": "node --test scripts/arabicui/*.test.mjs && node scripts/arabicui/check-translations.mjs",
+        "testRTL": "node --test scripts/rtl/*.test.mjs",
         "testHideDMs": "node --test scripts/hideDms/*.test.mjs",
         "testForkPolicy": "node --test scripts/forkPolicy/*.test.mjs",
-        "test": "pnpm testArabicUI && pnpm testHideDMs && pnpm testForkPolicy && pnpm buildStandalone && pnpm testTsc && pnpm lint && pnpm lint-styles && pnpm generatePluginJson",
+        "test": "pnpm testArabicUI && pnpm testRTL && pnpm testHideDMs && pnpm testForkPolicy && pnpm buildStandalone && pnpm testTsc && pnpm lint && pnpm lint-styles && pnpm generatePluginJson",
         "testWeb": "pnpm testArabicUI && pnpm testHideDMs && pnpm testForkPolicy && pnpm lint && pnpm buildWeb && pnpm testTsc",
         "testTsc": "tsc --noEmit"
     },

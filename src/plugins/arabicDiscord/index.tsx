@@ -7,7 +7,7 @@
 import { Link } from "@components/Link";
 import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
-import { Forms } from "@webpack/common";
+import { Forms, MessageStore, SelectedChannelStore } from "@webpack/common";
 
 // Import translations
 import translations from "./ar.json";
@@ -16,11 +16,15 @@ import translations from "./ar.json";
 
 const attributesToTranslate = ["aria-label", "title", "placeholder", "alt"];
 const TRANSLATION_CACHE_LIMIT = 1_024;
+const MAX_CACHED_TEXT_LENGTH = 512;
+const FRAME_NODE_LIMIT = 200;
+const FRAME_TIME_BUDGET_MS = 4;
 const skipSelector = [
     "input", "textarea", "select", "option", "code", "pre", "kbd", "samp",
-    "script", "style", "time", "[contenteditable='true']", "[role='textbox']",
-    "[data-slate-editor='true']", "[id^='message-content-']", "[class*='messageContent']"
+    "script", "style", "time", "[contenteditable]:not([contenteditable='false'])", "[role='textbox']",
+    "[data-slate-editor='true']"
 ].join(",");
+const messageSelector = "[id^='message-content-'],[class*='messageContent']";
 
 const translatedMonths: Record<string, string> = {
     Apr: "أبريل",
@@ -57,8 +61,16 @@ function formatArabicCount(value: string, one: string, two: string, few: string,
 }
 
 const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> = [
+    [/^ROLES\s*[—–-]\s*(\d+)$/i, match => `الرتب — ${match[1]}`],
+    [/^Mute (.+)$/, match => `كتم ${match[1]}`],
+    [/^Privacy Settings([ :—–-]+)(.+)$/i, match => `إعدادات الخصوصية${match[1]}${match[2]}`],
+    [/^Your message could not be delivered\. You can see the full list of reasons here: (https:\/\/support\.discord\.com\/hc\/en-us\/articles\/360060145013)$/, match => `تعذّر إرسال رسالتك. يمكنك الاطلاع على جميع الأسباب هنا: ${match[1]}`],
+    [/^(\d+)\s+devices?$/i, match => formatArabicCount(match[1], "جهاز واحد", "جهازان", "أجهزة", "جهازًا")],
+    [/^Control how your game and app activity is shared—what[’']s visible and who sees it\. You[’']re sharing activity with (.+) and (\d+) other servers?\.$/, match => `تحكّم في مشاركة نشاط ألعابك وتطبيقاتك، وما يظهر منه ومن يراه. تشارك نشاطك مع ${match[1]} و${formatArabicCount(match[2], "سيرفر آخر", "سيرفرين آخرين", "سيرفرات أخرى", "سيرفرًا آخر")}.`],
+    [/^(?:(.+) )?and (\d+) other servers?(\.?)$/, match => `${match[1] ? `${match[1]} ` : ""}و${formatArabicCount(match[2], "سيرفر آخر", "سيرفرين آخرين", "سيرفرات أخرى", "سيرفرًا آخر")}${match[3]}`],
     [/^Group DMs can have up to (\d+) members\.$/, match => `يمكن أن تضم المحادثات الخاصة الجماعية ما يصل إلى ${formatArabicCount(match[1], "عضو واحد", "عضوين", "أعضاء", "عضوًا")}.`],
     [/^(Last played )?(a|an|\d+) (minute|hour|day|week|month|year)s? ago$/, match => `${match[1] ? "آخر لعب " : ""}${translateTimeAgo(match[2], match[3])}`],
+    [/^Last used (a|an|\d+) (minute|hour|day|week|month|year)s? ago$/, match => `استُخدم آخر مرة ${translateTimeAgo(match[1], match[2])}`],
     [/^(\d+) Items?$/, match => formatArabicCount(match[1], "عنصر واحد", "عنصران", "عناصر", "عنصرًا")],
     [/^(.+) is not accepting friend requests\. They[’']ll have to add you to become friends\.$/, match => `لا يقبل حساب ${match[1]} طلبات الصداقة. يجب على صاحبه إضافتك لتصبحا صديقين.`],
     [/^Success! Your friend request to (.+) was sent\.$/, match => `أُرسل طلب صداقتك إلى ${match[1]}.`],
@@ -84,7 +96,7 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^You may (?:also )?be sharing activity from (\d+) games? you play, including$/, match => `قد تشارك نشاطك من الألعاب التي تلعبها (العدد: ${match[1]})، ومنها`],
     [/^Friend Anniversaries\s*[—–-]\s*(\d+)$/, match => `ذكريات الصداقة — ${match[1]}`],
     [/^(\d+)\s+Online$/, match => formatArabicCount(match[1], "متصل واحد", "متصلان", "متصلين", "متصلًا")],
-    [/^(\d+)\s+Members$/, match => formatArabicCount(match[1], "عضو واحد", "عضوان", "أعضاء", "عضوًا")],
+    [/^(\d+)\s+Members?$/i, match => formatArabicCount(match[1], "عضو واحد", "عضوان", "أعضاء", "عضوًا")],
     [/^(\d+)\s+accounts$/, match => formatArabicCount(match[1], "حساب واحد", "حسابان", "حسابات", "حسابًا")],
     [/^(\d+)\s+Mutual Friends$/, match => formatArabicCount(match[1], "صديق مشترك واحد", "صديقان مشتركان", "أصدقاء مشتركون", "صديقًا مشتركًا")],
     [/^(\d+)\s+Mutual Servers?$/, match => formatArabicCount(match[1], "سيرفر مشترك واحد", "سيرفران مشتركان", "سيرفرات مشتركة", "سيرفرًا مشتركًا")],
@@ -138,7 +150,6 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^(.+) has boosted this server\.$/, match => `دعم ${match[1]} هذا السيرفر.`],
     [/^Invite friends to (.+)$/, match => `دعوة أصدقاء إلى ${match[1]}`],
     [/^Recipients will land in (.+)$/, match => `سيدخل المستلمون إلى ${match[1]}`],
-    [/^Permissions not synced with category:\s*(.+)$/, match => `الصلاحيات غير متزامنة مع الفئة: ${match[1]}`],
     [/^Review @(.+)$/, match => `تقييم @${match[1]}`],
     [/^'s Reviews$/, () => " — التقييمات"],
     [/^This is the beginning of your direct message history with (.+)$/, match => `هذه بداية سجل رسائلك الخاصة مع ${match[1]}`],
@@ -162,6 +173,8 @@ let scheduledFrame: number | undefined;
 const pendingRoots = new Set<Node>();
 const pendingNodes = new Set<Node>();
 const removedRoots = new Set<Node>();
+const pendingAttributes = new Map<Element, Set<string>>();
+const traversalJobs = new Set<Generator<void>>();
 
 // --- Helper Functions ---
 
@@ -208,8 +221,8 @@ for (const [key, value] of Object.entries(translations)) {
 }
 
 function translate(value: string) {
+    if (!/[A-Za-z]/.test(value)) return;
     const normalized = normalize(value);
-    if (!normalized || !/[A-Za-z]/.test(normalized)) return;
 
     const exact = normalizedTranslations.get(normalized);
     if (exact) return exact;
@@ -230,6 +243,8 @@ function translate(value: string) {
 }
 
 function cacheTranslation(key: string, value: string | null) {
+    // Long descriptions still translate, but cannot inflate the bounded cache.
+    if (key.length > MAX_CACHED_TEXT_LENGTH) return;
     if (translationCache.size >= TRANSLATION_CACHE_LIMIT) {
         const oldest = translationCache.keys().next().value;
         if (oldest) translationCache.delete(oldest);
@@ -243,13 +258,27 @@ function replaceWithTranslation(value: string, translated: string) {
     return `${leadingWhitespace}${translated}${trailingWhitespace}`;
 }
 
+function isClydeDeliveryNotice(element: Element) {
+    const container = element.closest("[id^='message-content-']");
+    const messageId = container?.getAttribute("id")?.slice("message-content-".length);
+    const channelId = SelectedChannelStore?.getChannelId();
+    if (!messageId || !channelId) return false;
+    const message = MessageStore?.getMessage(channelId, messageId);
+    return message?.author?.username === "Clyde"
+        && message.author.isLocalBot?.() === true
+        && message.content.startsWith("Your message could not be delivered.");
+}
+
 function isExcluded(element: Element) {
-    return element.matches(skipSelector);
+    return element.matches(skipSelector)
+        || (element.matches(messageSelector) && !isClydeDeliveryNotice(element));
 }
 
 function isInsideExcludedTree(node: Node) {
     const element = node instanceof Element ? node : node.parentElement;
-    return Boolean(element?.closest(skipSelector));
+    if (element?.closest(skipSelector)) return true;
+    const message = element?.closest(messageSelector);
+    return Boolean(message && !isClydeDeliveryNotice(message));
 }
 
 // --- Core Translation Logic ---
@@ -261,7 +290,10 @@ function translateTextNode(node: Text) {
     const previous = translatedTextNodes.get(node);
     if (previous?.translated === node.data) return;
     const translated = translate(node.data);
-    if (!translated) return;
+    if (!translated) {
+        translatedTextNodes.delete(node);
+        return;
+    }
 
     const value = replaceWithTranslation(node.data, translated);
     if (value === node.data) return;
@@ -270,16 +302,19 @@ function translateTextNode(node: Text) {
     node.data = value;
 }
 
-function translateAttributes(element: Element) {
-    for (const attribute of attributesToTranslate) {
+function translateAttributes(element: Element, attributes: Iterable<string> = attributesToTranslate) {
+    for (const attribute of attributes) {
         const value = element.getAttribute(attribute);
-        if (!value) continue;
-
         const previous = translatedAttributes.get(element)?.get(attribute);
         if (previous?.translated === value) continue;
 
-        const translated = translate(value);
-        if (!translated) continue;
+        const translated = value && translate(value);
+        if (!translated) {
+            const records = translatedAttributes.get(element);
+            records?.delete(attribute);
+            if (records?.size === 0) translatedAttributes.delete(element);
+            continue;
+        }
 
         const translatedValue = replaceWithTranslation(value, translated);
         if (translatedValue === value) continue;
@@ -295,47 +330,41 @@ function translateAttributes(element: Element) {
     }
 }
 
-function translateTree(root: Node) {
-    if (root instanceof Element) translateAttributes(root);
-    if (isInsideExcludedTree(root)) return;
-    // TreeWalker.nextNode() excludes its root, including standalone added text.
-    if (root instanceof Text) {
-        translateTextNode(root);
-        return;
-    }
-
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
-        acceptNode(node) {
-            if (node instanceof Element && isExcluded(node)) {
+function* translateTreeSteps(root: Node): Generator<void> {
+    // Snapshot each level so removing/reparenting a node between frames cannot
+    // strand a live TreeWalker inside a detached subtree.
+    const stack = [root];
+    while (stack.length) {
+        const node = stack.pop()!;
+        if (node.isConnected && !(node.parentNode && isInsideExcludedTree(node.parentNode))) {
+            if (node instanceof Element) {
                 translateAttributes(node);
-                return NodeFilter.FILTER_REJECT;
+                if (!isExcluded(node)) {
+                    const children = node.childNodes;
+                    for (let i = children.length - 1; i >= 0; i--) stack.push(children[i]);
+                }
+            } else if (node instanceof Text) {
+                translateTextNode(node);
             }
-            return NodeFilter.FILTER_ACCEPT;
         }
-    });
-    let node: Node | null;
-
-    while ((node = walker.nextNode())) {
-        if (node.nodeType === Node.TEXT_NODE) {
-            translateTextNode(node as Text);
-            continue;
-        }
-        translateAttributes(node as Element);
+        yield;
     }
 }
 
-function forgetTree(root: Node) {
+function* forgetTreeSteps(root: Node): Generator<void> {
     // A removal record may describe a move, not a detached subtree.
     if (root.isConnected) return;
-    translatedTextNodes.delete(root as Text);
-    translatedAttributes.delete(root as Element);
-
-    if (!(root instanceof Element)) return;
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
-    let node: Node | null;
-    while ((node = walker.nextNode())) {
+    const stack = [root];
+    while (stack.length) {
+        const node = stack.pop()!;
+        if (node.isConnected) { yield; continue; }
         translatedTextNodes.delete(node as Text);
         translatedAttributes.delete(node as Element);
+        if (node instanceof Element) {
+            const children = node.childNodes;
+            for (let i = children.length - 1; i >= 0; i--) stack.push(children[i]);
+        }
+        yield;
     }
 }
 
@@ -348,30 +377,44 @@ function isNestedInSet(node: Node, roots: Set<Node>) {
 
 function flushMutations() {
     scheduledFrame = undefined;
+    const started = performance.now();
 
     for (const root of removedRoots) {
-        if (!isNestedInSet(root, removedRoots)) forgetTree(root);
+        if (!isNestedInSet(root, removedRoots)) traversalJobs.add(forgetTreeSteps(root));
     }
     removedRoots.clear();
 
+    for (const [element, attributes] of pendingAttributes) {
+        if (element.isConnected && !pendingRoots.has(element) && !isNestedInSet(element, pendingRoots)) {
+            traversalJobs.add((function* () {
+                if (element.isConnected && !(element.parentNode && isInsideExcludedTree(element.parentNode))) translateAttributes(element, attributes);
+                yield;
+            })());
+        }
+    }
+    pendingAttributes.clear();
     for (const node of pendingNodes) {
         if (!node.isConnected || pendingRoots.has(node) || isNestedInSet(node, pendingRoots)) continue;
-        if (node instanceof Element) {
-            translateAttributes(node);
-            continue;
-        }
-        if (!isInsideExcludedTree(node) && node instanceof Text) translateTextNode(node);
+        traversalJobs.add(translateTreeSteps(node));
     }
     pendingNodes.clear();
 
     for (const root of pendingRoots) {
-        if (root.isConnected && !isNestedInSet(root, pendingRoots)) translateTree(root);
+        if (root.isConnected && !isNestedInSet(root, pendingRoots)) traversalJobs.add(translateTreeSteps(root));
     }
     pendingRoots.clear();
+    let visited = 0;
+    while (traversalJobs.size && visited < FRAME_NODE_LIMIT) {
+        const job = traversalJobs.values().next().value!;
+        if (job.next().done) traversalJobs.delete(job);
+        visited++;
+        if (performance.now() - started >= FRAME_TIME_BUDGET_MS) break;
+    }
+    scheduleFlush();
 }
 
 function scheduleFlush() {
-    if (scheduledFrame === undefined && (pendingNodes.size || pendingRoots.size || removedRoots.size)) {
+    if (scheduledFrame === undefined && (pendingNodes.size || pendingRoots.size || removedRoots.size || pendingAttributes.size || traversalJobs.size)) {
         scheduledFrame = requestAnimationFrame(flushMutations);
     }
 }
@@ -380,14 +423,22 @@ function handleMutations(mutations: MutationRecord[]) {
     for (const mutation of mutations) {
         if (mutation.type === "attributes" && mutation.target instanceof Element) {
             const attribute = mutation.attributeName;
+            if (!attribute || !attributesToTranslate.includes(attribute)) continue;
+            if (mutation.target.parentNode && isInsideExcludedTree(mutation.target.parentNode)) continue;
             if (attribute && translatedAttributes.get(mutation.target)?.get(attribute)?.translated === mutation.target.getAttribute(attribute)) continue;
-            pendingNodes.add(mutation.target);
+            let attributes = pendingAttributes.get(mutation.target);
+            if (!attributes) pendingAttributes.set(mutation.target, attributes = new Set());
+            attributes.add(attribute);
         } else if (mutation.type === "characterData") {
             const node = mutation.target as Text;
             if (translatedTextNodes.get(node)?.translated === node.data || isInsideExcludedTree(node)) continue;
             pendingNodes.add(node);
         } else {
-            for (const node of mutation.addedNodes) pendingRoots.add(node);
+            if (!isInsideExcludedTree(mutation.target)) {
+                for (const node of mutation.addedNodes) {
+                    if (node instanceof Element || node instanceof Text) pendingRoots.add(node);
+                }
+            }
             for (const node of mutation.removedNodes) removedRoots.add(node);
         }
     }
@@ -422,8 +473,9 @@ export default definePlugin({
     ),
 
     start() {
-        // 1. Initial Translation
-        translateTree(document.body);
+        // Translate the initial page with the same bounded scheduler as updates.
+        pendingRoots.add(document.body);
+        scheduleFlush();
 
         // 2. Setup DOM Observer for dynamic content
         observer = new MutationObserver(handleMutations);
@@ -445,6 +497,8 @@ export default definePlugin({
         pendingRoots.clear();
         pendingNodes.clear();
         removedRoots.clear();
+        pendingAttributes.clear();
+        traversalJobs.clear();
         restoreTranslations();
         translationCache.clear();
     }

@@ -11,6 +11,7 @@ import definePlugin from "@utils/types";
 import style from "./style.css?managed";
 
 let originalDirection: string | null = null;
+let started = false;
 
 export default definePlugin({
     name: "RTL",
@@ -19,13 +20,17 @@ export default definePlugin({
     enabledByDefault: true,
 
     start() {
+        if (started) return;
+        enableStyle(style);
         originalDirection = document.documentElement.getAttribute("dir");
         document.documentElement.setAttribute("dir", "rtl");
-        enableStyle(style);
+        started = true;
     },
 
     stop() {
+        if (!started) return;
         disableStyle(style);
+        started = false;
         if (document.documentElement.getAttribute("dir") !== "rtl") return;
         if (originalDirection === null) document.documentElement.removeAttribute("dir");
         else document.documentElement.setAttribute("dir", originalDirection);

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import { auditTranslations } from "./audit-translations.mjs";
 
 const translations = JSON.parse(readFileSync(new URL("../../src/plugins/arabicDiscord/ar.json", import.meta.url), "utf8"));
 
@@ -22,4 +23,8 @@ test("editorial changes preserve interpolation placeholders", () => {
     for (const [key, value] of Object.entries(translations)) {
         assert.deepEqual(placeholders(value), placeholders(key), `Placeholders in ${key}`);
     }
+});
+
+test("case and apostrophe variants keep consistent Arabic copy", () => {
+    assert.deepEqual(auditTranslations(JSON.stringify(translations)).conflictingVariants, []);
 });
