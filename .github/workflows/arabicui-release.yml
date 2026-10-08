@@ -212,7 +212,7 @@ jobs:
                   short_sha="${GITHUB_SHA::7}"
                   tag="arabicui-$short_sha"
                   title="ArabicUI Vencord $short_sha"
-                  notes="Improves ArabicUI responsiveness with cooperative translation batches and bounded caches. Refines Arabic wording and audits duplicate translations. Fixes RTL server rail alignment, modern settings layouts, directional arrows, and bidirectional field values. Adds RTL lifecycle regression tests to release checks. Includes Windows and universal macOS installers. Final action-menu layout and technical input fields still require visual verification in the installed update."
+                  notes="Fixes overlapping horizontal slider marks and handles in RTL, and clipped second lines in plugin descriptions by sizing cards with their actual line height. Keeps profile layouts LTR while account actions remain RTL. Makes nested status menus prefer the left with Discord's automatic edge handling, and adjusts account rows, profile popout placement, and quest action order. Includes seven RTL regression checks and Windows and universal macOS installers. The final submenu, account-row, quest-action, and description layouts still need visual verification in the installed update."
 
                   if gh release view "$tag" >/dev/null 2>&1; then
                       gh release edit "$tag" --target "$GITHUB_SHA" --title "$title" --notes "$notes" --latest

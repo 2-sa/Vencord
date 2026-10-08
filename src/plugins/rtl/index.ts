@@ -19,6 +19,18 @@ export default definePlugin({
     authors: [Devs.TwoSa],
     enabledByDefault: true,
 
+    patches: [{
+        find: "submenuPaddingContainer",
+        replacement: {
+            match: /placement:"right-start"/g,
+            replace: "placement:$self.getSubmenuPlacement()"
+        }
+    }],
+
+    getSubmenuPlacement() {
+        return started ? "left-start" : "right-start";
+    },
+
     start() {
         if (started) return;
         enableStyle(style);

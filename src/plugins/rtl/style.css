@@ -12,6 +12,12 @@ body,
     text-align: left;
 }
 
+/* Slider marks and handles use physical left percentages, not RTL coordinates. */
+#app-mount [role="slider"][aria-orientation="horizontal"] {
+    direction: ltr;
+    text-align: left;
+}
+
 /* Keep the active server marker on the outside edge of the mirrored rail. */
 #app-mount [class*="guilds_"] [class*="pill_"] {
     right: 0;
@@ -33,6 +39,18 @@ body,
 #app-mount [role="menu"] [class*="labelContainer_"] {
     direction: rtl;
     text-align: start;
+}
+
+/* Latin account identities stay on the left; the selected check stays on the right. */
+#app-mount [role="menuitem"][id^="switch-accounts-submenu-"]:has(img),
+#app-mount [role="menuitem"][id^="switch-accounts-submenu-"]:has(img) [class*="labelContainer_"] {
+    direction: ltr;
+    text-align: left;
+}
+
+/* Quest cards render their primary action first; keep it on the left. */
+#app-mount [class*="ctaItem_"] > [data-direction="horizontal"] {
+    direction: ltr;
 }
 
 /* Vencord's physical margin pushes switches into the RTL label area. */
@@ -90,22 +108,35 @@ body,
     transform: scaleX(-1);
 }
 
-/* Profile identity and the account list use Latin names and LTR icon spacing. */
+/* Right-side user popouts must follow the mirrored message avatar to its left.
+ * Move the positioning layer, preserving the card's animation and LTR contents.
+ * Already-left popouts and the account action card keep their existing position. */
+#app-mount [class*="layer_"]:has(> [class*="animatorRight_"] .user-profile-popout):not(:has([class*="menus_"])) {
+    translate: calc(-100% - var(--custom-message-avatar-size, 40px) - 16px) 0;
+}
+
+/* Keep the full profile dialog, its editing panel and cards in Discord's LTR order. */
+#app-mount [role="dialog"]:has(main[class*="profile_"]),
+#app-mount main[class*="profile_"],
+#app-mount .user-profile-popout,
 #app-mount :is([class*="accountProfilePopout"], [class*="accountSwitcher"], [class*="switchAccounts"]) {
     direction: ltr;
     text-align: left;
 }
 
+/* The account actions remain RTL inside the otherwise LTR profile card. */
+#app-mount .user-profile-popout [class*="menus_"] {
+    direction: rtl;
+    text-align: right;
+}
+
+#app-mount .user-profile-popout [class*="menus_"] [class*="submenuIconWrapper_"] {
+    transform: scaleX(-1);
+}
+
 #app-mount :is([class*="username_"], [class*="displayName_"], [class*="nickname_"]) {
     text-align: start;
     unicode-bidi: plaintext;
-}
-
-/* Arabic account actions read from the right even inside an LTR identity card. */
-#app-mount :is([class*="accountProfilePopout"], [class*="accountSwitcher"], [class*="switchAccounts"])
-    :is(button, [role="button"], [role="menuitem"]) {
-    direction: rtl;
-    text-align: right;
 }
 
 /* Keep editable fields aligned with the rest of the interface. */

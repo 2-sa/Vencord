@@ -92,3 +92,23 @@ test("a failed stylesheet load does not leave the application mirrored", () => {
     runtime.plugin.stop();
     assert.deepEqual(runtime.calls, []);
 });
+
+test("submenu placement follows plugin enable and disable without forcing offscreen coordinates", () => {
+    const runtime = loadPlugin("ltr");
+    assert.equal(runtime.plugin.getSubmenuPlacement(), "right-start");
+    runtime.plugin.start();
+    assert.equal(runtime.plugin.getSubmenuPlacement(), "left-start");
+    runtime.plugin.stop();
+    assert.equal(runtime.plugin.getSubmenuPlacement(), "right-start");
+});
+
+test("both submenu render paths change placement while retaining Discord edge handling", () => {
+    const { plugin } = loadPlugin();
+    const fixture = 'submenuPaddingContainer;({placement:"right-start",autoFlip:!0,viewportPadding:48});({placement:"right-start",autoFlip:!0,shiftPadding:8})';
+    const replacement = plugin.patches[0].replacement;
+    const patched = fixture.replace(replacement.match, replacement.replace);
+    assert.equal((patched.match(/getSubmenuPlacement\(\)/g) || []).length, 2);
+    assert.ok(patched.includes("autoFlip:!0,viewportPadding:48"));
+    assert.ok(patched.includes("autoFlip:!0,shiftPadding:8"));
+    assert.ok(!patched.includes('placement:"right-start"'));
+});
