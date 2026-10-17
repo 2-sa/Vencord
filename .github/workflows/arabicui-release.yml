@@ -212,7 +212,7 @@ jobs:
                   short_sha="${GITHUB_SHA::7}"
                   tag="arabicui-$short_sha"
                   title="ArabicUI Vencord $short_sha"
-                  notes="Fixes overlapping horizontal slider marks and handles in RTL, and clipped second lines in plugin descriptions by sizing cards with their actual line height. Keeps profile layouts LTR while account actions remain RTL. Makes nested status menus prefer the left with Discord's automatic edge handling, and adjusts account rows, profile popout placement, and quest action order. Includes seven RTL regression checks and Windows and universal macOS installers. The final submenu, account-row, quest-action, and description layouts still need visual verification in the installed update."
+                  notes="Updates the ArabicUI fork to Vencord 1.15.11 with 29 individually reviewed upstream commits through 32c90633. Includes the new Toasts API, GIF provider switching with migrated settings and Giphy support, and fixes for profiles, role menus, stickers, timers, Stage channels and server settings. Preserves ArabicUI, RTL, HideDMs, default plugin settings, and the removal of donor services, Decor and USRBG. Upstream removed Run Snippet for security. All 68 fork checks, the full desktop validation and standalone web build passed locally. Includes Windows and universal macOS installers. Installed Discord behavior and visual layouts still require runtime verification."
 
                   if gh release view "$tag" >/dev/null 2>&1; then
                       gh release edit "$tag" --target "$GITHUB_SHA" --title "$title" --notes "$notes" --latest
