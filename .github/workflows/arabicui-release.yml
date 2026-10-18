@@ -2,10 +2,6 @@ name: Release ArabicUI Vencord
 
 on:
     workflow_dispatch:
-    push:
-        branches:
-            - main
-
 permissions:
     contents: write
 
@@ -93,6 +89,7 @@ jobs:
             - name: Upload build artifact
               uses: actions/upload-artifact@v7
               with:
+                retention-days: 1
                   name: ArabicUI-Windows-${{ github.sha }}
                   path: |
                       VencordInstaller.exe
@@ -176,6 +173,7 @@ jobs:
             - name: Upload build artifact
               uses: actions/upload-artifact@v7
               with:
+                retention-days: 1
                   name: ArabicUI-macOS-${{ github.sha }}
                   path: ArabicUI-Vencord-macOS-Universal.dmg
                   if-no-files-found: error
