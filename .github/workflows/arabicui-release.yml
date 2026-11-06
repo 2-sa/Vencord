@@ -39,15 +39,8 @@ jobs:
             - name: Check out official installer
               run: git clone --depth 1 https://github.com/Vencord/Installer.git installer
 
-            - name: Point installer at ArabicUI releases
-              shell: pwsh
-              run: |
-                  $releaseApi = "https://api.github.com/repos/${{ github.repository }}/releases/latest"
-                  $constantsPath = "installer/constants.go"
-                  $constants = Get-Content -LiteralPath $constantsPath -Raw
-                  $constants = $constants.Replace('const ReleaseUrl = "https://api.github.com/repos/Vendicated/Vencord/releases/latest"', "const ReleaseUrl = `"$releaseApi`"")
-                  $constants = $constants.Replace('const ReleaseUrlFallback = "https://vencord.dev/releases/vencord"', "const ReleaseUrlFallback = `"$releaseApi`"")
-                  Set-Content -LiteralPath $constantsPath -Value $constants -Encoding utf8NoBOM
+            - name: Configure installer for ArabicUI releases and Windows config path
+              run: python scripts/build/patchInstaller.py installer
 
             - name: Set up MSYS2 build tools
               uses: msys2/setup-msys2@v2
@@ -131,29 +124,8 @@ jobs:
             - name: Check out official installer
               run: git clone --depth 1 https://github.com/Vencord/Installer.git installer
 
-            - name: Point installer at ArabicUI releases
-              env:
-                  RELEASE_API: https://api.github.com/repos/${{ github.repository }}/releases/latest
-              run: |
-                  python3 - <<'PY'
-                  import os
-                  from pathlib import Path
-
-                  path = Path("installer/constants.go")
-                  contents = path.read_text()
-                  original = contents
-                  contents = contents.replace(
-                      'const ReleaseUrl = "https://api.github.com/repos/Vendicated/Vencord/releases/latest"',
-                      f'const ReleaseUrl = "{os.environ["RELEASE_API"]}"',
-                  )
-                  contents = contents.replace(
-                      'const ReleaseUrlFallback = "https://vencord.dev/releases/vencord"',
-                      f'const ReleaseUrlFallback = "{os.environ["RELEASE_API"]}"',
-                  )
-                  if contents == original or contents.count(os.environ["RELEASE_API"]) != 2:
-                      raise SystemExit("Could not configure the installer release URL")
-                  path.write_text(contents)
-                  PY
+            - name: Configure installer for ArabicUI releases and config path
+              run: python3 scripts/build/patchInstaller.py installer
 
             - name: Install macOS build tools
               run: brew install pkg-config sdl2 create-dmg
