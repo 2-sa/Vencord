@@ -5,9 +5,10 @@
  */
 
 import { Link } from "@components/Link";
+import { Paragraph } from "@components/Paragraph";
 import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
-import { Forms, MessageStore, SelectedChannelStore } from "@webpack/common";
+import { MessageStore, SelectedChannelStore } from "@webpack/common";
 
 // Import translations
 import translations from "./ar.json";
@@ -467,9 +468,9 @@ export default definePlugin({
     authors: [Devs.TwoSa],
     enabledByDefault: true,
     settingsAboutComponent: () => (
-        <Forms.FormText>
+        <Paragraph>
             GitHub: <Link href="https://github.com/2-sa/Vencord">github.com/2-sa/Vencord</Link>
-        </Forms.FormText>
+        </Paragraph>
     ),
 
     start() {

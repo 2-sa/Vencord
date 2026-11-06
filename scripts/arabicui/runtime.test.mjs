@@ -18,7 +18,7 @@ const result = await build({
         setup(builder) {
             builder.onResolve({ filter: /^@/ }, args => ({ path: args.path, namespace: "discord" }));
             builder.onLoad({ filter: /.*/, namespace: "discord" }, () => ({
-                contents: "export default x=>x; export const Link=null, Devs={TwoSa:{}}, Forms={}; export const MessageStore={getMessage:(_,id)=>globalThis.testMessages.get(id)}, SelectedChannelStore={getChannelId:()=> 'channel'};"
+                contents: "export default x=>x; export const Link=null, Paragraph=null, Devs={TwoSa:{}}, Forms={}; export const MessageStore={getMessage:(_,id)=>globalThis.testMessages.get(id)}, SelectedChannelStore={getChannelId:()=> 'channel'};"
             }));
         }
     }]
