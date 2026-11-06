@@ -270,3 +270,35 @@
 | 28 | [`c0fe7b1f`](https://github.com/Vendicated/Vencord/commit/c0fe7b1fcb290c69dab64ae437ceff5e3d80acac) | الانتقال النهائي إلى Toasts API بصيغة الكائن وتحديث المستدعين؛ حفظ استبعاد شارات المتبرعين وDecor. | `0b465d76` |
 | 29 | [`32c90633`](https://github.com/Vendicated/Vencord/commit/32c90633ce6a95d7e56c95479efbb431bacf1eac) | تحديث عناوين فئات PinDms بخط الواجهة وحجم 14 ووزن 500 دون فرض الحروف الكبيرة. | `80a4c916` |
 
+## مزامنة upstream — 6 نوفمبر 2026
+
+جُلب المرجع الرسمي `Vendicated/Vencord main` حتى `383409e6a6ec9008ee8a7496500f1e75f17824d1` (إصدار Vencord 1.15.16)، والذي يضم 66 كوميتًا بعد نقطة الدمج السابقة `32c90633ce6a95d7e56c95479efbb431bacf1eac`.
+دُمج المرجع في الكوميت `6bdec40a` على `main`، وأظهرت المقارنة صفر كوميتات ناقصة من المرجع الرسمي.
+
+### حماية تخصيصات النسخة والسياسات
+
+1. **الإضافات والخدمات المحذوفة:**
+   - أُبقيت إضافتا Decor وUSRBG محذوفتين تمامًا (`src/plugins/decor` و`src/plugins/usrbg`)، واستُبعدت ملفات التعديل الواردة لهما من upstream تلقائيًا عبر `git rm`.
+   - أُبقي زر التبرع `src/components/settings/tabs/vencord/DonateButton.tsx` وبطاقات التبرع محذوفة ومستبعدة من تبويب إعدادات Vencord.
+   - أُبقي جلب شارات المتبرعين من `badges.vencord.dev` مستبعدًا ومحذوفًا من `src/plugins/_api/badges/index.tsx`، مع دعم وتضمين ميزة دليل الشارات الجديدة من ديسكورد (`DirectoryBadge` و`toDirectoryBadge` وترقيعات `BadgeDirectoryStore` و`badge_directory_closed`) لشارات المساهمين والإضافات دون طلبات خارجية لخادم الشارات.
+   - حوفظ على سياسة CSP المشددة دون نطاقات عامة (`*.vencord.dev`) أو نطاقات Decor/USRBG.
+
+2. **حل التعارضات البرمجية:**
+   - **إزالة Forms من Webpack:** أزال upstream في `2bf2440c` تصدير `Forms` من `@webpack/common`؛ عُولج ذلك في `src/plugins/arabicDiscord/index.tsx` باستبدال `<Forms.FormText>` بـ `<Paragraph>` من `@components/Paragraph`، وتحديث بديل الاختبارات `scripts/arabicui/runtime.test.mjs` ليتضمن تصدير `Paragraph`.
+   - **ملف package.json:** رُقّي إصدار الحزمة إلى `1.15.16`، وحُفظت جميع أوامر الفحص الخاصة بالنسخة (`testArabicUI`، `testRTL`، `testHideDMs`، `testForkPolicy`، `test`، `testWeb`) مع اعتماد `pnpm@12.15.0` ونظام الـ Catalogs المعتمد في `pnpm-workspace.yaml`.
+   - **ملف AGENTS.md:** حُفظ دليل وتوجيهات المشروع الخاصة بنسختنا بالكامل دون استبدالها بملف upstream الموجز.
+
+### التحقق ونتائج الفحوصات
+
+- نجحت 68 حالة اختبار خاصة بالنسخة بالكامل:
+  - ArabicUI: 51 اختبارًا ناجحًا + التحقق من 3286 مفتاح ترجمة فريد وصالح.
+  - RTL: 7 اختبارات ناجحة للاتجاه والقوائم الفرعية.
+  - HideDMs: 3 اختبارات ناجحة لاختصارات وإعدادات إخفاء الخاص.
+  - forkPolicy: 7 اختبارات ناجحة لغياب الخدمات المحذوفة وبطاقات التبرع وصحة CSP.
+- نجح بناء الحزمة المكتبية المستقلة (`pnpm buildStandalone`) دون أخطاء.
+- نجح فحص الأنواع البرمجية بالكامل (`tsc --noEmit`).
+- نجح فحص التنسيق والكود (`pnpm lint` و`pnpm lint-styles`).
+- نجح توليد ملف تعريف الإضافات (`pnpm generatePluginJson`).
+- نجح فحص وبناء نسخة الويب بالكامل (`pnpm testWeb`).
+
+
