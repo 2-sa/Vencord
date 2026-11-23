@@ -1,30 +1,48 @@
 .vc-hide-dms-control {
+    position: relative;
     display: flex;
     justify-content: center;
-    padding: 8px 0;
+    align-items: center;
+    align-self: stretch;
+    width: var(--custom-guild-list-width, 100%);
+    margin: 0;
+    padding: 0;
 }
 
 .vc-hide-dms-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    box-sizing: border-box;
+    width: var(--guildbar-avatar-size, 40px);
+    height: var(--guildbar-avatar-size, 40px);
     padding: 0;
     border: 0;
-    border-radius: 12px;
-    background: var(--background-secondary, #2b2d31);
+    border-radius: 25%;
+    background-color: var(--background-mod-subtle, var(--background-secondary, #2b2d31));
     color: var(--interactive-icon-default, #b5bac1);
     cursor: pointer;
+    transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.vc-hide-dms-button svg {
+    flex: none;
+    pointer-events: none;
 }
 
 .vc-hide-dms-button:hover,
 .vc-hide-dms-button[aria-pressed="true"] {
-    background: var(--brand-500, #5865f2);
-    color: #fff;
+    background-color: var(--brand-500, #5865f2);
+    color: var(--white, #fff);
 }
 
 .vc-hide-dms-button:focus-visible {
     outline: 2px solid var(--focus-primary, #00a8fc);
     outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vc-hide-dms-button {
+        transition: none;
+    }
 }

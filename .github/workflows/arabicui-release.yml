@@ -182,7 +182,7 @@ jobs:
                   short_sha="${GITHUB_SHA::7}"
                   tag="arabicui-$short_sha"
                   title="ArabicUI Vencord $short_sha"
-                  notes="Updates the ArabicUI fork to Vencord 1.15.11 with 29 individually reviewed upstream commits through 32c90633. Includes the new Toasts API, GIF provider switching with migrated settings and Giphy support, and fixes for profiles, role menus, stickers, timers, Stage channels and server settings. Preserves ArabicUI, RTL, HideDMs, default plugin settings, and the removal of donor services, Decor and USRBG. Upstream removed Run Snippet for security. All 68 fork checks, the full desktop validation and standalone web build passed locally. Includes Windows and universal macOS installers. Installed Discord behavior and visual layouts still require runtime verification."
+                  notes="ArabicUI fork on Vencord 1.15.16. Aligns and styles the HideDMs server list toggle button to match Discord's sidebar icons (guild rail width, no extra vertical padding, guildbar avatar sizing, rounded square corners, theme-adaptive subtle surface, smooth transition, and 20x20 rounded-cap eye icon), includes the Windows installer config path fix, and preserves ArabicUI, RTL, default plugin settings, and removed donor/Decor/USRBG services. Includes Windows and universal macOS installers. Installed Discord visual verification is still required after updating."
 
                   if gh release view "$tag" >/dev/null 2>&1; then
                       gh release edit "$tag" --target "$GITHUB_SHA" --title "$title" --notes "$notes" --latest

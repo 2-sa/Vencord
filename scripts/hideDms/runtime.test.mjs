@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import vm from "node:vm";
 import { build } from "esbuild";
@@ -116,5 +117,21 @@ test("button, settings, shutdown and restart agree on the saved visibility", () 
     assert.equal(context.hidden, true);
     assert.equal(listeners.size, 1);
     assert.equal(context.buttons.size, 1);
+    const icon = button().children[0];
+    assert.equal(icon.props.width, "20");
+    assert.equal(icon.props.height, "20");
+    assert.equal(icon.props.strokeLinecap, "round");
+    assert.equal(icon.props.strokeLinejoin, "round");
     plugin.stop();
+});
+
+test("server list control matches guild rail width without extra vertical padding", () => {
+    const css = readFileSync(new URL("../../src/plugins/hideDms/style.css", import.meta.url), "utf8");
+    const controlBlock = css.match(/\.vc-hide-dms-control\s*\{[^}]*\}/)?.[0] ?? "";
+    const buttonBlock = css.match(/\.vc-hide-dms-button\s*\{[^}]*\}/)?.[0] ?? "";
+    assert.match(controlBlock, /width:\s*var\(--custom-guild-list-width,\s*100%\);/);
+    assert.match(controlBlock, /align-self:\s*stretch;/);
+    assert.match(controlBlock, /padding:\s*0;/);
+    assert.match(buttonBlock, /width:\s*var\(--guildbar-avatar-size,\s*40px\);/);
+    assert.match(buttonBlock, /height:\s*var\(--guildbar-avatar-size,\s*40px\);/);
 });
