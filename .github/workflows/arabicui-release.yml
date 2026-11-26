@@ -61,7 +61,7 @@ jobs:
                   go install github.com/tc-hib/go-winres@latest
                   go-winres make --product-version 1.0.0
                   installer_hash="$(git rev-parse --short HEAD)"
-                  CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags static -ldflags "-s -w -H=windowsgui -extldflags=-static -X vencordinstaller/buildinfo.InstallerGitHash=$installer_hash" -o ../VencordInstaller.exe
+                  CGO_LDFLAGS_ALLOW='-l:.*\.a' CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags static -ldflags "-s -w -H=windowsgui -extldflags=-static -X vencordinstaller/buildinfo.InstallerGitHash=$installer_hash" -o ../VencordInstaller.exe
 
             - name: Verify release files
               shell: pwsh
