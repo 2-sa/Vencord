@@ -23,6 +23,10 @@ test("rejects malformed JSON, nested values and empty translations", () => {
         assert.throws(() => validateTranslations(value));
     }
 });
+test("rejects keys lacking ASCII letters or containing Arabic characters", () => {
+    assert.throws(() => validateTranslations('{"123":"١٢٣"}'), /ASCII letters/);
+    assert.throws(() => validateTranslations('{"Suppress @everyone و@here":"كتم"}'), /Arabic characters/);
+});
 
 test("audit distinguishes legitimate shared values from conflicting source variants", () => {
     const audit = auditTranslations(JSON.stringify({
@@ -32,4 +36,14 @@ test("audit distinguishes legitimate shared values from conflicting source varia
     assert.equal(audit.sourceVariantGroups, 2);
     assert.equal(audit.sharedArabicValueGroups, 2);
     assert.deepEqual(audit.conflictingVariants, [[{ key: "Open", value: "فتح" }, { key: "OPEN", value: "افتح" }]]);
+});
+test("audit detects quote and dash variant conflicts", () => {
+    const audit = auditTranslations(JSON.stringify({
+        'EDIT ROLE —': 'تعديل الرتبة —',
+        'EDIT ROLE -': 'تعديل الرتبة -',
+        'Click "Add"': 'اضغط «إضافة»',
+        'Click “Add”': 'انقر “إضافة”'
+    }));
+    assert.equal(audit.sourceVariantGroups, 2);
+    assert.equal(audit.conflictingVariants.length, 2);
 });

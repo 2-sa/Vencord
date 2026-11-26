@@ -8,7 +8,9 @@ const translations = JSON.parse(readFileSync(new URL("../../src/plugins/arabicDi
 test("Arabic UI copy avoids recurring auxiliary verbs and translation calques", () => {
     const discouraged = [
         /(?:^|[\s،؛.!؟])(?:تم|تمت|يتم|تتم|سيتم|ستتم)\s/u,
-        /(?:^|\s)(?:يرجى|يُرجى|الرجاء|للقيام بذلك|من خلال|يقوم ب|قم ب)\s/u,
+        /(?:^|\s)(?:يرجى|يُرجى|الرجاء|للقيام بذلك|من خلال)\s/u,
+        /(?:^|\s)(?:يقوم|تقوم|قم)\s+ب/u,
+        /(?:^|\s)(?:عن طريق|عندك)(?=\s|[،.!؟]|$)/u,
         /(?:بشكل|بصورة)\s+(?:تلقائي|مؤقت|نهائي|مستمر|منفصل)/u,
         /(?:الخاص|الخاصة)\s+(?:بك|بهم|بها|بي)(?=\s|[،.!؟]|$)/u
     ];

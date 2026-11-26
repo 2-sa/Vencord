@@ -73,3 +73,35 @@ test("browser skips desktop-only plugins and migrates them once when available l
     applyArabicUiDefaultsV1(state, desktop);
     assert.equal(state.plugins.YoutubeAdblock.enabled, false);
 });
+
+test("initial migration writes arabicUiDefaultsV1Applied once after the loop", () => {
+    const store = new SettingsStore({ plugins: {} });
+    const paths = [];
+    store.addGlobalChangeListener((_data, path) => paths.push(path));
+    applyArabicUiDefaultsV1(store.store, desktop);
+    assert.equal(paths.filter(path => path === "arabicUiDefaultsV1Applied").length, 1);
+});
+
+test("already-migrated empty plugins map does not re-enable or write", () => {
+    const store = new SettingsStore({
+        plugins: {},
+        arabicUiDefaultsV1Applied: [...ARABIC_UI_DEFAULTS_V1]
+    });
+    let writes = 0;
+    store.addGlobalChangeListener(() => writes++);
+    applyArabicUiDefaultsV1(store.store, desktop);
+    assert.equal(writes, 0);
+    for (const name of ARABIC_UI_DEFAULTS_V1) {
+        assert.equal(store.store.plugins[name], undefined);
+    }
+});
+
+test("malformed arabicUiDefaultsV1Applied and missing plugins object are recovered safely", () => {
+    const state = { arabicUiDefaultsV1Applied: "corrupted" };
+    applyArabicUiDefaultsV1(state, desktop);
+    assert.equal(Array.isArray(state.arabicUiDefaultsV1Applied), true);
+    assert.equal(state.arabicUiDefaultsV1Applied.length, ARABIC_UI_DEFAULTS_V1.length);
+    for (const name of ARABIC_UI_DEFAULTS_V1) {
+        assert.equal(state.plugins[name].enabled, true);
+    }
+});

@@ -8,7 +8,14 @@ export function auditTranslations(source) {
     const count = validateTranslations(source);
     const variants = new Map(), values = new Map();
     for (const [key, value] of Object.entries(JSON.parse(source))) {
-        const normalized = key.replace(/\s+/g, " ").trim().replace(/[’‘]/g, "'").toLowerCase();
+        const normalized = key
+            .replace(/\s+/g, " ")
+            .trim()
+            .replace(/[’‘]/g, "'")
+            .replace(/[“”]/g, '"')
+            .replace(/[—–]/g, "-")
+            .replace(/…/g, "...")
+            .toLowerCase();
         if (!variants.has(normalized)) variants.set(normalized, []);
         variants.get(normalized).push({ key, value });
         if (!values.has(value)) values.set(value, []);

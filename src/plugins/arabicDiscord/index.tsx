@@ -51,13 +51,15 @@ function formatArabicPlural(value: string, forms: Record<Intl.LDMLPluralRule, st
 
 function formatArabicCount(value: string, one: string, two: string, few: string, many: string) {
     const singular = one.replace(/ واحد(?:ة)?(?=\s|$)/, "");
+    const other = `{n} ${many.replace(/ًا/g, "").replace(/ً/g, "")}`;
+    const num = Number(value);
     return formatArabicPlural(value, {
         zero: `{n} ${singular}`,
-        one,
-        two,
+        one: num === 1 ? one : other,
+        two: num === 2 ? two : other,
         few: `{n} ${few}`,
         many: `{n} ${many}`,
-        other: `{n} ${many.replace(/ًا/g, "").replace(/ً/g, "")}`
+        other
     });
 }
 
@@ -110,12 +112,12 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^Smoother video\s*[·•]\s*(.+)$/, match => `فيديو أسلس · ${match[1]}`],
     [/^Clearer text\s*[·•]\s*(.+)$/, match => `نص أوضح · ${match[1].replace("Source", "المصدر")}`],
     [/^Well, it looks like Discord is not detecting any input from your mic\. Let[’']s fix that! Error: (\d+)$/, match => `يبدو أن ديسكورد لا يلتقط أي صوت من الميكروفون. لنصلح ذلك! خطأ: ${match[1]}`],
-    [/^(.+)\s+Error:\s*(\d+)$/, match => `${translations[match[1]] ?? match[1]} رمز الخطأ: ${match[2]}`],
+    [/^(.+)\s+Error:\s*(\d+)$/, match => `${normalizedTranslations.get(normalize(match[1])) ?? match[1]} رمز الخطأ: ${match[2]}`],
     [/^Average ping:\s*(\d+)\s*ms$/, match => `متوسط الاستجابة: ${match[1]} مللي ثانية`],
     [/^Last ping:\s*(\d+)\s*ms$/, match => `آخر استجابة: ${match[1]} مللي ثانية`],
     [/^Outbound packet loss rate:\s*([\d.]+)%$/, match => `نسبة فقدان الحزم الصادرة: ${match[1]}%`],
     [/^You can add (\d+) more friends\.$/, match => `يمكنك إضافة ${formatArabicCount(match[1], "صديق آخر", "صديقين آخرين", "أصدقاء آخرين", "صديقًا آخر")}.`],
-    [/^EDIT ROLE\s+[—-]\s+(.+)$/, match => `تعديل الرتبة — ${translations[match[1]] ?? match[1]}`],
+    [/^EDIT ROLE\s+[—-]\s+(.+)$/, match => `تعديل الرتبة — ${normalizedTranslations.get(normalize(match[1])) ?? match[1]}`],
     [/^Manage Members \((\d+)\)$/, match => `إدارة الأعضاء (${match[1]})`],
     [/^Your current phone number is: (.+)\. Reveal$/, match => `رقم هاتفك الحالي هو: ${match[1]}. إظهار`],
     [/^Accept as (.+)$/, match => `قبول باسم ${match[1]}`],
@@ -127,7 +129,7 @@ const translationPatterns: Array<[RegExp, (match: RegExpMatchArray) => string]> 
     [/^(.+)\s+started a call that lasted (.+)\.$/, match => `${match[1]} بدأ مكالمة استمرت ${translateCallDuration(match[2])}.`],
     [/^This is the beginning of your direct message history with (.+)\.$/, match => `هذه بداية سجل رسائلك الخاصة مع ${match[1]}.`],
     [/^Ignore (.+)\?$/, match => `تجاهل ${match[1]}؟`],
-    [/^You have unsaved changes to the "(.+)" AutoMod rule\. Are you sure you want to stop editing without saving\?$/, match => `لديك تغييرات غير محفوظة في قاعدة أوتومود «${translations[match[1]] ?? match[1]}». هل تريد إيقاف التعديل دون حفظ؟`],
+    [/^You have unsaved changes to the "(.+)" AutoMod rule\. Are you sure you want to stop editing without saving\?$/, match => `لديك تغييرات غير محفوظة في قاعدة أوتومود «${normalizedTranslations.get(normalize(match[1])) ?? match[1]}». هل تريد إيقاف التعديل دون حفظ؟`],
     [/^Add up to (\d+) custom emoji that anyone can use in this server\. Animated GIF emoji may be used by members with Discord Nitro\.$/, match => `أضف ما يصل إلى ${match[1]} إيموجي مخصص يمكن للجميع استخدامه في هذا السيرفر. ويمكن لمشتركي نيترو استخدام إيموجي GIF المتحرك.`],
     [/^The recommended minimum size is (\d+x\d+) and recommended aspect ratio is ([\d:]+)\.$/, match => `الحد الأدنى الموصى به للحجم هو ${match[1]} ونسبة الأبعاد الموصى بها هي ${match[2]}.`],
     [/^Buy for (.+)$/, match => `شراء بسعر ${match[1]}`],
@@ -168,9 +170,11 @@ interface TranslationRecord {
 
 const translatedTextNodes = new Map<Text, TranslationRecord>();
 const translatedAttributes = new Map<Element, Map<string, TranslationRecord>>();
+const patternCache = new Map<string, string>();
 const translationCache = new Map<string, string | null>();
 let observer: MutationObserver | undefined;
 let scheduledFrame: number | undefined;
+let started = false;
 const pendingRoots = new Set<Node>();
 const pendingNodes = new Set<Node>();
 const removedRoots = new Set<Node>();
@@ -212,7 +216,7 @@ function translateTimeAgo(amount: string, unit: string) {
 }
 
 function normalize(value: string) {
-    return value.replace(/\s+/g, " ").trim();
+    return value.replace(/[’‘]/g, "'").replace(/\s+/g, " ").trim();
 }
 
 const normalizedTranslations = new Map<string, string>();
@@ -228,6 +232,13 @@ function translate(value: string) {
     const exact = normalizedTranslations.get(normalized);
     if (exact) return exact;
 
+    const patternHit = patternCache.get(normalized);
+    if (patternHit !== undefined) {
+        patternCache.delete(normalized);
+        patternCache.set(normalized, patternHit);
+        return patternHit;
+    }
+
     const cached = translationCache.get(normalized);
     if (cached !== undefined) return cached ?? undefined;
 
@@ -235,7 +246,7 @@ function translate(value: string) {
         const match = normalized.match(pattern);
         if (match) {
             const result = replacer(match);
-            cacheTranslation(normalized, result);
+            cachePatternHit(normalized, result);
             return result;
         }
     }
@@ -243,12 +254,21 @@ function translate(value: string) {
     cacheTranslation(normalized, null);
 }
 
+function cachePatternHit(key: string, value: string) {
+    if (key.length > MAX_CACHED_TEXT_LENGTH) return;
+    if (patternCache.size >= TRANSLATION_CACHE_LIMIT) {
+        const oldest = patternCache.keys().next().value;
+        if (oldest !== undefined) patternCache.delete(oldest);
+    }
+    patternCache.set(key, value);
+}
+
 function cacheTranslation(key: string, value: string | null) {
     // Long descriptions still translate, but cannot inflate the bounded cache.
     if (key.length > MAX_CACHED_TEXT_LENGTH) return;
     if (translationCache.size >= TRANSLATION_CACHE_LIMIT) {
         const oldest = translationCache.keys().next().value;
-        if (oldest) translationCache.delete(oldest);
+        if (oldest !== undefined) translationCache.delete(oldest);
     }
     translationCache.set(key, value);
 }
@@ -387,10 +407,9 @@ function flushMutations() {
 
     for (const [element, attributes] of pendingAttributes) {
         if (element.isConnected && !pendingRoots.has(element) && !isNestedInSet(element, pendingRoots)) {
-            traversalJobs.add((function* () {
-                if (element.isConnected && !(element.parentNode && isInsideExcludedTree(element.parentNode))) translateAttributes(element, attributes);
-                yield;
-            })());
+            if (!(element.parentNode && isInsideExcludedTree(element.parentNode))) {
+                translateAttributes(element, attributes);
+            }
         }
     }
     pendingAttributes.clear();
@@ -474,6 +493,9 @@ export default definePlugin({
     ),
 
     start() {
+        if (started || !document.body) return;
+        started = true;
+
         // Translate the initial page with the same bounded scheduler as updates.
         pendingRoots.add(document.body);
         scheduleFlush();
@@ -491,6 +513,7 @@ export default definePlugin({
     },
 
     stop() {
+        started = false;
         observer?.disconnect();
         observer = undefined;
         if (scheduledFrame !== undefined) cancelAnimationFrame(scheduledFrame);
@@ -501,6 +524,7 @@ export default definePlugin({
         pendingAttributes.clear();
         traversalJobs.clear();
         restoreTranslations();
+        patternCache.clear();
         translationCache.clear();
     }
 });

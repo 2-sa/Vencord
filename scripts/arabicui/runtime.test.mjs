@@ -39,8 +39,10 @@ function fixture(now = () => 0) {
         excluded = false;
         attrs = new Map();
         matches(selector) {
-            if (selector.includes("message-content")) return this.attrs.get("id")?.startsWith("message-content-") ?? false;
-            if (selector.includes("[contenteditable]") && this.attrs.has("contenteditable")) return this.attrs.get("contenteditable") !== "false";
+            if (selector.includes("message-content") && this.attrs.get("id")?.startsWith("message-content-")) return true;
+            if (selector.includes("messageContent") && this.attrs.get("class")?.includes("messageContent")) return true;
+            if (selector.includes("[contenteditable]") && this.attrs.has("contenteditable") && this.attrs.get("contenteditable") !== "false") return true;
+            if (this.tagName && selector.split(",").some(part => part.trim().toLowerCase() === this.tagName.toLowerCase())) return true;
             return this.excluded;
         }
         closest(selector) { return this.matches(selector) ? this : this.parentElement?.closest(selector); }
@@ -53,6 +55,9 @@ function fixture(now = () => 0) {
     }
     let frames = 0;
     let visits = 0;
+    let observers = 0;
+    let disconnects = 0;
+    const cancelledFrames = [];
     const document = {};
     const testMessages = new Map();
     const context = {
@@ -60,8 +65,9 @@ function fixture(now = () => 0) {
         performance: { now },
         module: { exports: {} }, document,
         Node: TestNode, Element: TestElement, Text: TestText,
-        MutationObserver: class { observe() {} disconnect() {} },
-        requestAnimationFrame: () => ++frames, cancelAnimationFrame: () => {}
+        MutationObserver: class { observe() { observers++; } disconnect() { disconnects++; } },
+        requestAnimationFrame: () => ++frames,
+        cancelAnimationFrame: id => { cancelledFrames.push(id); }
     };
     vm.runInNewContext(result.outputFiles[0].text, context);
     context.module.exports.translateTree = root => { for (const _ of context.module.exports.translateTreeSteps(root)) {} };
@@ -69,7 +75,11 @@ function fixture(now = () => 0) {
     const root = new TestElement();
     root.connected = true;
     document.body = root;
-    return { api: context.module.exports, root, TestElement, TestText, testMessages, frames: () => frames, visits: () => visits };
+    return {
+        api: context.module.exports, root, TestElement, TestText, testMessages,
+        frames: () => frames, visits: () => visits,
+        observers: () => observers, disconnects: () => disconnects, cancelledFrames: () => cancelledFrames
+    };
 }
 
 test("translates standalone inserted text and restores original whitespace", () => {
@@ -691,4 +701,135 @@ test("large removals release records over multiple frames", () => {
     assert.ok(f.api.translatedTextNodes.size > 0);
     for (let n = 0; n < 10 && f.api.traversalJobs.size; n++) f.api.flushMutations();
     assert.equal(f.api.translatedTextNodes.size, 0);
+});
+
+test("101, 102, 201 and 202 preserve their numbers in formatArabicCount and translateTimeAgo", () => {
+    const f = fixture();
+    for (const [label, expected] of [
+        ["101 Items", "101 عنصر"],
+        ["102 Items", "102 عنصر"],
+        ["201 Items", "201 عنصر"],
+        ["202 Items", "202 عنصر"],
+        ["101 Members", "101 عضو"],
+        ["102 Members", "102 عضو"],
+        ["201 Members", "201 عضو"],
+        ["202 Members", "202 عضو"],
+        ["Last played 101 days ago", "آخر لعب قبل 101 يوم"],
+        ["Last played 102 days ago", "آخر لعب قبل 102 يوم"]
+    ]) {
+        const text = f.root.append(new f.TestText(label));
+        f.api.translateTree(text);
+        assert.equal(text.data, expected);
+    }
+});
+
+test("normalize maps curly apostrophes before dictionary and pattern matching", () => {
+    const f = fixture();
+    for (const [label, expected] of [
+        ["Sam’s Reviews", "تقييمات Sam"],
+        ["Sam doesn’t have any activity to share here", "لا يوجد لدى Sam أي نشاط لمشاركته هنا"],
+        ["’s Reviews", " — التقييمات"],
+        ["You’re in the adult age group (18+) and have access to", "أنت ضمن الفئة العمرية للبالغين (18+) ويمكنك الوصول إلى"]
+    ]) {
+        const text = f.root.append(new f.TestText(label));
+        f.api.translateTree(text);
+        assert.equal(text.data, expected);
+    }
+});
+
+test("start is re-entrant safe and rapid start/stop/start cancels frames and disconnects observers", () => {
+    const f = fixture();
+    const text = f.root.append(new f.TestText("Open"));
+    f.api.default.start();
+    f.api.default.start();
+    assert.equal(f.observers(), 1);
+    assert.equal(f.frames(), 1);
+
+    f.api.default.stop();
+    assert.equal(f.disconnects(), 1);
+    assert.deepEqual(f.cancelledFrames(), [1]);
+    assert.equal(text.data, "Open");
+
+    f.api.default.start();
+    assert.equal(f.observers(), 2);
+    assert.equal(f.frames(), 2);
+    f.api.flushMutations();
+    assert.equal(text.data, "فتح");
+
+    f.api.default.stop();
+    assert.equal(f.disconnects(), 2);
+    assert.equal(text.data, "Open");
+});
+
+test("restoreTranslations restores unmodified attributes and preserves externally edited ones", () => {
+    const f = fixture();
+    const el = f.root.append(new f.TestElement());
+    el.setAttribute("title", "Open");
+    el.setAttribute("aria-label", "Close");
+    el.setAttribute("alt", "Send");
+    f.api.translateTree(el);
+    assert.equal(el.getAttribute("title"), "فتح");
+    assert.equal(el.getAttribute("aria-label"), "إغلاق");
+    assert.equal(el.getAttribute("alt"), "إرسال");
+
+    el.setAttribute("alt", "Custom");
+    f.api.restoreTranslations();
+    assert.equal(el.getAttribute("title"), "Open");
+    assert.equal(el.getAttribute("aria-label"), "Close");
+    assert.equal(el.getAttribute("alt"), "Custom");
+    assert.equal(f.api.translatedAttributes.size, 0);
+});
+
+test("contenteditable='false' translates while class*='messageContent' is excluded", () => {
+    const f = fixture();
+    const editableFalse = f.root.append(new f.TestElement());
+    editableFalse.setAttribute("contenteditable", "false");
+    const okText = editableFalse.append(new f.TestText("Open"));
+
+    const msg = f.root.append(new f.TestElement());
+    msg.setAttribute("class", "markup_123 messageContent_456");
+    const msgText = msg.append(new f.TestText("Open"));
+
+    f.api.translateTree(f.root);
+    assert.equal(okText.data, "فتح");
+    assert.equal(msgText.data, "Open");
+});
+
+test("re-parenting a translated node in the same batch preserves its restoration record", () => {
+    const f = fixture();
+    const parentA = f.root.append(new f.TestElement());
+    const parentB = f.root.append(new f.TestElement());
+    const child = parentA.append(new f.TestElement());
+    const text = child.append(new f.TestText("Open"));
+
+    f.api.translateTree(f.root);
+    assert.equal(text.data, "فتح");
+
+    parentA.children.pop();
+    parentB.append(child);
+    f.api.handleMutations([
+        { type: "childList", target: parentA, addedNodes: [], removedNodes: [child] },
+        { type: "childList", target: parentB, addedNodes: [child], removedNodes: [] }
+    ]);
+    f.api.flushMutations();
+
+    assert.equal(f.api.translatedTextNodes.has(text), true);
+    f.api.restoreTranslations();
+    assert.equal(text.data, "Open");
+});
+
+test("oversized matched strings translate without entering translationCache and bidi patterns keep LRM", () => {
+    const f = fixture();
+    const longSubject = "A".repeat(520);
+    const longInput = `Mute ${longSubject}`;
+    const longNode = f.root.append(new f.TestText(longInput));
+    f.api.translateTree(longNode);
+    assert.equal(longNode.data, `كتم ${longSubject}`);
+    assert.equal(f.api.translationCache.has(longInput), false);
+
+    const monthly = f.root.append(new f.TestText("Plans start at only $9.99/month. Cancel anytime"));
+    const oneTime = f.root.append(new f.TestText("Plans start at only $9.99. Cancel anytime"));
+    f.api.translateTree(f.root);
+    assert.equal(monthly.data, "تبدأ الخطط من \u200E$9.99\u200E/شهر فقط. يمكنك الإلغاء في أي وقت");
+    assert.equal(oneTime.data, "تبدأ الخطط من \u200E$9.99\u200E فقط. يمكنك الإلغاء في أي وقت");
 });
