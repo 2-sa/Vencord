@@ -53,7 +53,7 @@ export const Devs = /* #__PURE__*/ Object.freeze({
     },
     TwoSa: {
         name: "2-sa",
-        id: 0n
+        id: 392190283355389957n
     },
     Apexo: {
         name: "Apexo",
